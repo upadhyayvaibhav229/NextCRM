@@ -21,6 +21,7 @@ import {
   Code,
   Check,
 } from "lucide-react"
+import { GlobalCssEditor } from "@/components/global-css-editor"
 
 // Types
 interface Page {
@@ -381,6 +382,7 @@ function Sidebar({
     { id: "pages", label: "Pages", icon: FileText, path: "/admin/pages" },
     { id: "menus", label: "Menus", icon: Menu, path: "/admin/menus" },
     { id: "settings", label: "Settings", icon: Settings, path: "/admin/settings" },
+    { id: "global-css", label: "Global CSS", icon: Code, path: "/admin/setting/global-css" },
   ]
 
   return (
@@ -1123,11 +1125,15 @@ function SettingsSection() {
         <h2 className="font-medium text-foreground mb-4">General Settings</h2>
         <div className="space-y-4 text-muted-foreground">
           <p>Settings panel coming soon...</p>
-          <p className="text-sm font-mono">Configure site title, meta tags, and deployment options.</p>
+          <p className="text-sm font-mono">Global CSS is available at /admin/setting/global-css.</p>
         </div>
       </div>
     </div>
   )
+}
+
+function GlobalCssSection() {
+  return <GlobalCssEditor />
 }
 
 // Main App
@@ -1164,6 +1170,7 @@ export default function CMSAdminPanel() {
           <MenusSection menus={menus} setMenus={setMenus} pages={pages} />
         )}
         {activeSection === "settings" && <SettingsSection />}
+        {activeSection === "global-css" && <GlobalCssSection />}
       </main>
     </div>
   )
