@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Pencil, Trash2, X, Eye, Check } from "lucide-react";
+import Editor from "@monaco-editor/react";
 import { Page } from "./Cms";
 
 interface PageEditorProps {
@@ -35,7 +36,6 @@ export function PageEditor({
       });
 
       const data = await res.json();
-
       console.log("Slug available:", data.data.available);
     } catch (err) {
       console.error(err);
@@ -48,6 +48,50 @@ export function PageEditor({
     const allPages = isNewPage ? [...pages, page] : updatedPages;
     localStorage.setItem("cms_pages", JSON.stringify(allPages));
     window.open(`/preview/${page.slug}`, "_blank");
+  };
+
+  // Get language based on active tab
+  const getLanguage = () => {
+    switch (activeTab) {
+      case "html":
+        return "html";
+      case "css":
+        return "css";
+      case "js":
+        return "javascript";
+      default:
+        return "html";
+    }
+  };
+
+  // Editor options for better experience
+  const editorOptions = {
+    minimap: { enabled: false },
+    fontSize: 14,
+    lineNumbers: "on",
+    roundedSelection: false,
+    scrollBeyondLastLine: false,
+    automaticLayout: true,
+    tabSize: 2,
+    wordWrap: "on",
+    formatOnPaste: true,
+    formatOnType: true,
+    autoClosingBrackets: "always",
+    autoClosingQuotes: "always",
+    autoIndent: "full",
+    suggestOnTriggerCharacters: true,
+    acceptSuggestionOnEnter: "on",
+    quickSuggestions: {
+      other: true,
+      comments: true,
+      strings: true,
+    },
+    parameterHints: { enabled: true },
+    bracketPairColorization: { enabled: true },
+    guides: { bracketPairs: true },
+    renderWhitespace: "selection",
+    smoothScrolling: true,
+    cursorSmoothCaretAnimation: "on",
   };
 
   return (
@@ -75,7 +119,7 @@ export function PageEditor({
                   slug: newSlug,
                 });
 
-                checkSlug(newSlug); // ✅ HERE
+                checkSlug(newSlug);
               }}
               className="bg-transparent text-lg font-bold text-foreground border-none outline-none w-full"
               placeholder="Page Title"
@@ -141,11 +185,14 @@ export function PageEditor({
           </div>
         </div>
         <div className="flex-1 relative">
-          <textarea
+          <Editor
+            height="100%"
+            language={getLanguage()}
             value={page[activeTab]}
-            onChange={(e) => onChange({ ...page, [activeTab]: e.target.value })}
-            className="code-editor absolute inset-0 w-full h-full p-4 bg-code-bg text-foreground resize-none border-none"
-            spellCheck={false}
+            onChange={(value) => onChange({ ...page, [activeTab]: value || "" })}
+            theme="vs-dark"
+            options={editorOptions}
+            loading={<div className="flex items-center justify-center h-full">Loading editor...</div>}
           />
         </div>
       </div>
