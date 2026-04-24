@@ -12,28 +12,26 @@ export function PagesSection() {
   const [pages, setPages] = useState<Page[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isNewPage, setIsNewPage] = useState(false); // ← Add this state
 
   const handleEdit = async (id: number) => {
     try {
       setLoading(true);
-
       const res = await pageService.getById(id);
-
-      // normalize response (important)
       const fullPage = res.data?.data || res.data;
-
       setEditingPage(fullPage);
+      setIsNewPage(false); // ← Mark as existing page
     } catch (error) {
       console.error("Failed to fetch page:", error);
     } finally {
       setLoading(false);
     }
   };
+
   const fetchPages = async () => {
     try {
       setLoading(true);
       const res = await pageService.getAll();
-      // Ensure pages have unique IDs
       setPages(res.data);
       setError(null);
     } catch (error: any) {
@@ -49,60 +47,40 @@ export function PagesSection() {
     fetchPages();
   }, []);
 
-  const createNewPage = async () => {
-    try {
-      const newPage = await pageService.create({
-        title: "New Page",
-        slug: "new-page",
-        html: "",
-        css: "",
-        js: "",
-        status: "draft",
-      });
-      return newPage;
-    } catch (error: any) {
-      setError(error.message);
-      console.error("Failed to create page:", error);
-      return null;
-    }
-  };
+  // REMOVE this entire function - no more createNewPage()
+  // const createNewPage = async () => { ... }
 
   const savePage = async () => {
     if (!editingPage) return;
 
     try {
       setLoading(true);
-      const existingIndex = pages.findIndex((p) => p.id === editingPage.id);
       const updatedPage = {
         ...editingPage,
         // modified: new Date().toISOString().split("T")[0],
       };
 
-      console.log("editingPage.id", editingPage.id);
-      console.log("pages", pages);
       let savedPage;
-      if (existingIndex >= 0) {
-        // Update existing page
-        const res = await pageService.update(editingPage.id, updatedPage);
-
-        // ✅ extract actual page
-        const pageData = res.data;
-
-        const newPages = [...pages];
-        newPages[existingIndex] = pageData;
-
-        setPages(newPages);
-      } else {
-        // Create new page (though createNewPage should have already done this)
+      
+      if (isNewPage) {
+        // This is a NEW page - CREATE it in backend
         const res = await pageService.create(updatedPage);
-
-        // ✅ extract actual page object
-        const pageData = res.data;
-
-        setPages([...pages, pageData]);
+        savedPage = res.data?.data || res.data;
+        setPages([...pages, savedPage]);
+      } else {
+        // This is an EXISTING page - UPDATE it
+        const res = await pageService.update(editingPage.id, updatedPage);
+        savedPage = res.data?.data || res.data;
+        const existingIndex = pages.findIndex((p) => p.id === editingPage.id);
+        if (existingIndex >= 0) {
+          const newPages = [...pages];
+          newPages[existingIndex] = savedPage;
+          setPages(newPages);
+        }
       }
 
       setEditingPage(null);
+      setIsNewPage(false);
       setError(null);
     } catch (error: any) {
       setError(error.message);
@@ -127,11 +105,20 @@ export function PagesSection() {
     }
   };
 
-  const handleNewPage = async () => {
-    const newPage = await createNewPage();
-    if (newPage) {
-      setEditingPage(newPage);
-    }
+  const handleNewPage = () => {
+    // Create temporary page object - NO API CALL!
+    const tempPage: Page = {
+      id: `temp-${Date.now()}`, // Temporary ID
+      title: "New Page",
+      slug: "new-page",
+      html: "",
+      css: "",
+      js: "",
+      status: "draft",
+      modified: new Date().toISOString().split("T")[0],
+    };
+    setEditingPage(tempPage);
+    setIsNewPage(true); // ← Mark as new page
   };
 
   if (editingPage) {
@@ -141,7 +128,10 @@ export function PagesSection() {
         pages={pages}
         onChange={setEditingPage}
         onSave={savePage}
-        onCancel={() => setEditingPage(null)}
+        onCancel={() => {
+          setEditingPage(null);
+          setIsNewPage(false);
+        }}
       />
     );
   }
@@ -177,7 +167,7 @@ export function PagesSection() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              {["Title", "Slug", "Status", "Modified", "Actions"].map((h) => (
+              {["Title", "Slug", "Status", "Created at","Updated at", "Actions"].map((h) => (
                 <th
                   key={h}
                   className={`p-4 text-sm font-medium text-muted-foreground ${
@@ -226,7 +216,12 @@ export function PagesSection() {
                   </td>
                   <td className="p-4">
                     <span className="font-mono text-sm text-muted-foreground">
-                      {page.modified}
+                      {page.createdAt}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <span className="font-mono text-sm text-muted-foreground">
+                      {page.updatedAt}
                     </span>
                   </td>
                   <td className="p-4 text-right">

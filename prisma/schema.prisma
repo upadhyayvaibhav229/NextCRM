@@ -29,7 +29,7 @@ model Page {
 model Menu {
   id       Int        @id @default(autoincrement())
   name     String
-  location String     @unique  // ← fix 6: guarantee one menu per location
+  location String     @default("none")  // ← remove @unique, allow none
   items    MenuItem[]
 }
 

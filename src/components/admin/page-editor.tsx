@@ -27,6 +27,21 @@ export function PageEditor({
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
+  const checkSlug = async (slug: string) => {
+    try {
+      const res = await fetch(`/api/pages/slug/${slug}/check`, {
+        method: "POST",
+        body: JSON.stringify({ excludeId: page.id }),
+      });
+
+      const data = await res.json();
+
+      console.log("Slug available:", data.data.available);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const openPreview = () => {
     const updatedPages = pages.map((p) => (p.id === page.id ? page : p));
     const isNewPage = !pages.find((p) => p.id === page.id);
@@ -50,13 +65,18 @@ export function PageEditor({
             <input
               type="text"
               value={page.title}
-              onChange={(e) =>
+              onChange={(e) => {
+                const value = e.target.value;
+                const newSlug = generateSlug(value);
+
                 onChange({
                   ...page,
-                  title: e.target.value,
-                  slug: generateSlug(e.target.value),
-                })
-              }
+                  title: value,
+                  slug: newSlug,
+                });
+
+                checkSlug(newSlug); // ✅ HERE
+              }}
               className="bg-transparent text-lg font-bold text-foreground border-none outline-none w-full"
               placeholder="Page Title"
             />

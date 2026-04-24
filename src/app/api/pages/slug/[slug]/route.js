@@ -1,14 +1,12 @@
-// import { ApiError } from "next/dist/server/api-utils";
-
 import { getPageBySlug, isSlugAvailable } from "../../../../lib/services/page.service.js";
 import { ApiError } from "../../../../lib/utils/ApiError.js";
 import { ApiResponse } from "../../../../lib/utils/ApiResponse.js";
 import { asyncHandler } from "../../../../lib/utils/asyncHandler.js";
 
-// get pagebyslug
-
-export const GET = asyncHandler(async (req, { params }) => {
-  const { slug } = params;
+// GET page by slug for Next.js 15+
+export const GET = asyncHandler(async (request, { params }) => {
+  const { slug } = await params;  // Need to await params in Next.js 15+
+  
   if (!slug) {
     throw new ApiError(400, "Slug is required");
   }
@@ -26,19 +24,18 @@ export const GET = asyncHandler(async (req, { params }) => {
   return Response.json(new ApiResponse(200, findPage, "Page fetched successfully"));
 });
 
-
-// check slug availability
-export const POST = asyncHandler(async (req, { params }) => {
-  const { slug } = await params
-  const body = await req.json()
+// POST check slug availability for Next.js 15+
+export const POST = asyncHandler(async (request, { params }) => {
+  const { slug } = await params;  // Need to await params in Next.js 15+
+  const body = await request.json();
 
   if (!slug) {
-    throw new ApiError(400, 'Slug is required')
+    throw new ApiError(400, 'Slug is required');
   }
 
-  const available = await isSlugAvailable(slug, body.excludeId)
+  const available = await isSlugAvailable(slug, body.excludeId);
 
   return Response.json(
     new ApiResponse(200, { available }, available ? 'Slug is available' : 'Slug is already taken')
-  )
-})
+  );
+});

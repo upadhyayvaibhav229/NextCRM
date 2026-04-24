@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useMenusPreview } from "@/src/hooks/useMenusPreview";
 
 interface Page {
   id: string;
@@ -14,206 +15,19 @@ interface Page {
   js: string;
 }
 
-interface MenuItem {
-  id: string;
-  label: string;
-  type: "page" | "custom";
-  pageId?: string;
-  slug?: string;
-  url?: string;
-  children: MenuItem[];
-}
-
-interface MenuData {
-  id: string;
-  name: string;
-  location: "primary" | "footer" | "none";
-  items: MenuItem[];
-}
-
-const fallbackMenus: MenuData[] = [
-  {
-    id: "1",
-    name: "Primary Navigation",
-    location: "primary",
-    items: [
-      { id: "m1", label: "Home", type: "page", pageId: "1", children: [] },
-      { id: "m2", label: "About", type: "page", pageId: "2", children: [] },
-      { id: "m3", label: "Services", type: "page", pageId: "3", children: [] },
-      { id: "m4", label: "Contact", type: "page", pageId: "4", children: [] },
-    ],
-  },
-  {
-    id: "2",
-    name: "Footer Links",
-    location: "footer",
-    items: [
-      {
-        id: "f1",
-        label: "Privacy Policy",
-        type: "custom",
-        url: "/privacy",
-        children: [],
-      },
-      {
-        id: "f2",
-        label: "Terms of Service",
-        type: "custom",
-        url: "/terms",
-        children: [],
-      },
-    ],
-  },
-];
-
-const samplePages: Page[] = [
-  {
-    id: "1",
-    title: "Home",
-    slug: "home",
-    status: "published",
-    modified: "2024-01-15",
-    html: `<section class="hero">
-  <h1>Welcome to Our Platform</h1>
-  <p>Build amazing things with modern tools</p>
-  <button class="cta">Get Started</button>
-</section>
-
-<section class="features">
-  <div class="feature">
-    <h3>Fast</h3>
-    <p>Lightning quick performance</p>
-  </div>
-  <div class="feature">
-    <h3>Secure</h3>
-    <p>Enterprise-grade security</p>
-  </div>
-</section>`,
-    css: `.hero {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-.hero h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-.cta {
-  padding: 1rem 2rem;
-  background: white;
-  color: #667eea;
-  border: none;
-  border-radius: 9999px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-  padding: 3rem 2rem;
-}
-.feature {
-  padding: 1.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 1rem;
-  background: white;
-}`,
-    js: `document.querySelector(".cta")?.addEventListener("click", () => {
-  alert("Welcome aboard!");
-});`,
-  },
-  {
-    id: "2",
-    title: "About",
-    slug: "about",
-    status: "published",
-    modified: "2024-01-15",
-    html: `<section class="page">
-  <h1>About Us</h1>
-  <p>We build modern digital experiences for ambitious teams.</p>
-</section>`,
-    css: `.page {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 4rem 2rem;
-}`,
-    js: "",
-  },
-  {
-    id: "3",
-    title: "Services",
-    slug: "services",
-    status: "published",
-    modified: "2024-01-15",
-    html: `<section class="page">
-  <h1>Services</h1>
-  <p>Strategy, design, development, and launch support.</p>
-</section>`,
-    css: `.page {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 4rem 2rem;
-}`,
-    js: "",
-  },
-  {
-    id: "4",
-    title: "Contact",
-    slug: "contact",
-    status: "published",
-    modified: "2024-01-15",
-    html: `<section class="page">
-  <h1>Contact</h1>
-  <form class="contact-form">
-    <input type="text" placeholder="Your name" required />
-    <input type="email" placeholder="Your email" required />
-    <textarea placeholder="Your message" rows="5" required></textarea>
-    <button type="submit">Send Message</button>
-  </form>
-</section>`,
-    css: `.page {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 4rem 2rem;
-}
-.contact-form {
-  display: grid;
-  gap: 1rem;
-}
-.contact-form input,
-.contact-form textarea {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.75rem;
-}
-.contact-form button {
-  width: 100%;
-  padding: 1rem;
-  background: #111827;
-  color: white;
-  border: none;
-  border-radius: 0.75rem;
-  cursor: pointer;
-}`,
-    js: `document.querySelector(".contact-form")?.addEventListener("submit", (e) => {
-  e.preventDefault();
-  alert("Message sent!");
-});`,
-  },
-];
-
 export default function PreviewPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const slug = params.slug;
   const [page, setPage] = useState<Page | null>(null);
-  const [menus, setMenus] = useState<MenuData[]>(fallbackMenus);
   const [globalCss, setGlobalCss] = useState("");
   const [notFound, setNotFound] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  
+  // Use the menus hook - no hardcoded menus!
+  const { menus, loading: menusLoading } = useMenusPreview();
 
+  // Handle navigation messages from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === "NAVIGATE" && typeof event.data.url === "string") {
@@ -225,59 +39,57 @@ export default function PreviewPage() {
     return () => window.removeEventListener("message", handleMessage);
   }, [router]);
 
+  // Fetch page by slug
   useEffect(() => {
-    const storedPages = localStorage.getItem("cms_pages");
-    const storedMenus = localStorage.getItem("cms_menus");
-    const storedGlobalCss = localStorage.getItem("cms_global_css");
-
-    let loadedPages = samplePages;
-    let loadedMenus = fallbackMenus;
-
-    if (storedPages) {
+    const fetchPage = async () => {
       try {
-        loadedPages = JSON.parse(storedPages) as Page[];
-      } catch {}
-    }
-
-    if (storedMenus) {
-      try {
-        loadedMenus = JSON.parse(storedMenus) as MenuData[];
-      } catch {}
-    }
-
-    setGlobalCss(storedGlobalCss ?? "");
-
-    const foundPage = loadedPages.find((item) => item.slug === slug) ?? null;
-    setPage(foundPage);
-    setNotFound(!foundPage);
-
-    const enrichedMenus = loadedMenus.map((menu) => ({
-      ...menu,
-      items: menu.items.map((item) => {
-        if (item.type !== "page" || !item.pageId) {
-          return item;
+        if (!slug) return;
+        
+        const res = await fetch(`/api/pages/slug/${slug}`);
+        const data = await res.json();
+        
+        console.log("API Response:", data);
+        
+        if (data.success && data.data) {
+          setPage(data.data);
+          setNotFound(false);
+        } else {
+          setNotFound(true);
         }
+      } catch (err) {
+        console.error("Failed to load page:", err);
+        setNotFound(true);
+      } finally {
+        setPageLoading(false);
+      }
+    };
 
-        const linkedPage = loadedPages.find((candidate) => candidate.id === item.pageId);
-        return {
-          ...item,
-          slug: linkedPage?.slug ?? "",
-        };
-      }),
-    }));
-
-    setMenus(enrichedMenus);
+    if (slug) {
+      fetchPage();
+    }
   }, [slug]);
 
+  // Get header and footer menus - match your MenusSection locations
   const headerMenu = useMemo(
-    () => menus.find((menu) => menu.location === "primary") ?? null,
-    [menus],
+    () => menus.find((menu) => menu.location === "header"), // "header" matches your MenusSection
+    [menus]
   );
+  
   const footerMenu = useMemo(
-    () => menus.find((menu) => menu.location === "footer") ?? null,
-    [menus],
+    () => menus.find((menu) => menu.location === "footer"), // "footer" matches your MenusSection
+    [menus]
   );
 
+  // Show loading state
+  if (pageLoading || menusLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white text-gray-600">
+        Loading...
+      </div>
+    );
+  }
+
+  // Show 404 if page not found
   if (notFound) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white px-6">
@@ -289,24 +101,29 @@ export default function PreviewPage() {
     );
   }
 
+  // Show loading if no page yet
   if (!page) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white text-gray-600">
-        Loading...
+        Loading page...
       </div>
     );
   }
 
-  const mapItems = (items: MenuItem[], className: string) =>
+  // Map menu items to HTML
+  const mapItems = (items, className) =>
     items
       .map((item) => {
         const href =
-          item.type === "page" && item.slug ? `/preview/${item.slug}` : item.url || "#";
+          item.type === "page" && item.slug 
+            ? `/preview/${item.slug}` 
+            : item.url || "#";
 
         return `<li><a href="${href}" class="${className}" onclick="handleNav(event, '${href}')">${item.label}</a></li>`;
       })
       .join("");
 
+  // Generate full HTML for iframe
   const fullHtml = `<!DOCTYPE html>
 <html>
 <head>
