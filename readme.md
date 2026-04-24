@@ -1,67 +1,62 @@
-## Pages API — Completed (Phase 1 Backend)
-
-Implemented backend APIs for the Pages module using Next.js API routes and PostgreSQL (via Prisma).
-
-### ✅ Features Implemented
-
-* Create Page
-
-  * Accepts title, HTML, CSS, JS, and status
-  * Auto-generates slug from title (if not provided)
-  * Ensures slug uniqueness before creation
-
-* Get All Pages
-
-  * Returns list of pages (latest first)
-  * Includes key fields (title, slug, status, timestamps)
-
-* Get Page by Slug
-
-  * Used for public page rendering
-  * Returns only published pages
-
-* Get Page by ID
-
-  * Used for admin editing
-
-* Update Page
-
-  * Updates content, status, and slug (with validation)
-  * Handles publish/unpublish actions
-
-* Delete Page
-
-  * Removes page from database
-
-* Slug Availability Check
-
-  * Validates if a slug is already taken (used in editor)
+Here are all API endpoints for both Pages and Menus:
 
 ---
 
-### ⚙️ Technical Highlights
+### Pages
 
-* PostgreSQL used for structured data storage
-* Prisma ORM for database interaction
-* Service layer implemented for separation of concerns
-* Slug generation utility added
-* Basic validation and error handling applied
-* Consistent API response structure
-
----
-
-### 📌 Notes
-
-* Fixed issues related to:
-
-  * Incorrect imports
-  * Variable naming inconsistencies
-  * Duplicate delete operation
-* Refactored API logic to use service layer instead of direct database access
+| Method | Endpoint | What it does |
+|---|---|---|
+| GET | `/api/pages` | Get all pages |
+| POST | `/api/pages` | Create new page |
+| GET | `/api/pages/[id]` | Get single page by ID |
+| PUT | `/api/pages/[id]` | Update page |
+| PUT | `/api/pages/[id]` `{action:'publish'}` | Publish page |
+| PUT | `/api/pages/[id]` `{action:'unpublish'}` | Unpublish page |
+| DELETE | `/api/pages/[id]` | Delete page |
+| GET | `/api/pages/slug/[slug]` | Get published page by slug |
+| POST | `/api/pages/slug/[slug]/check` | Check slug availability |
 
 ---
 
-### 🚀 Next Step
+### Menus
 
-* Implement Menu API (Header & Footer)
-* Connect frontend menu builder with backend APIs
+| Method | Endpoint | What it does |
+|---|---|---|
+| GET | `/api/menus` | Get all menus with items |
+| POST | `/api/menus` | Create new menu |
+| GET | `/api/menus/[id]` | Get single menu by ID |
+| PUT | `/api/menus/[id]` | Update menu name/location/items |
+| DELETE | `/api/menus/[id]` | Delete menu + its items |
+| GET | `/api/menus/location/[location]` | Get menu by header or footer |
+| POST | `/api/menus/[id]/items` | Add item to menu |
+| PUT | `/api/menus/[id]/items` | Reorder all items |
+| PUT | `/api/menus/[id]/items/[itemId]` | Update single item |
+| DELETE | `/api/menus/[id]/items/[itemId]` | Delete single item |
+
+---
+
+### Folder Structure
+
+```
+app/api/
+├── pages/
+│   ├── route.js                        GET, POST
+│   ├── [id]/
+│   │   └── route.js                    GET, PUT, DELETE
+│   └── slug/
+│       └── [slug]/
+│           ├── route.js                GET
+│           └── check/
+│               └── route.js            POST
+└── menus/
+    ├── route.js                        GET, POST
+    ├── [id]/
+    │   ├── route.js                    GET, PUT, DELETE
+    │   └── items/
+    │       ├── route.js                POST, PUT
+    │       └── [itemId]/
+    │           └── route.js            PUT, DELETE
+    └── location/
+        └── [location]/
+            └── route.js               GET
+```

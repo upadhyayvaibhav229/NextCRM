@@ -29,19 +29,20 @@ model Page {
 model Menu {
   id       Int        @id @default(autoincrement())
   name     String
-  location String     // header | footer
+  location String     @unique  // ← fix 6: guarantee one menu per location
   items    MenuItem[]
 }
 
 model MenuItem {
-  id       Int     @id @default(autoincrement())
-  label    String
-  slug     String?
-  url      String?
-  order    Int
+  id     Int     @id @default(autoincrement())
+  label  String
+  type   String  // ← fix 3: "page" | "custom"
+  slug   String?
+  url    String?
+  order  Int
 
-  menuId   Int
-  menu     Menu    @relation(fields: [menuId], references: [id])
+  menuId Int
+  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade) // ← fix 5
 }
 
 

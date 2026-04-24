@@ -1,0 +1,302 @@
+import { prisma } from '../prisma.js'
+
+// ─── Constants ────────────────────────────────────────────
+
+export const VALID_LOCATIONS = ['header', 'footer']
+export const VALID_ITEM_TYPES = ['page', 'custom']
+
+// ─── Validators ───────────────────────────────────────────
+
+// fix 1: location validation
+function validateLocation(location) {
+  if (!location) {
+    throw new Error('Menu location is required')
+  }
+  if (!VALID_LOCATIONS.includes(location)) {
+    throw new Error(`Location must be one of: ${VALID_LOCATIONS.join(', ')}`)
+  }
+}
+
+// fix 2 + 3 + 4: menu item validation
+async function validateMenuItem(item) {
+  if (!item.label || !item.label.trim()) {
+    throw new Error('Item label is required')
+  }
+
+  // fix 3: type is required
+  if (!item.type) {
+    throw new Error('Item type is required')
+  }
+
+  if (!VALID_ITEM_TYPES.includes(item.type)) {
+    throw new Error(`Item type must be one of: ${VALID_ITEM_TYPES.join(', ')}`)
+  }
+
+  // fix 4: page type must have slug
+ if (item.type === 'page') {
+  const page = await prisma.page.findUnique({
+    where: { slug: item.slug }
+  })
+
+  if (!page) {
+    throw new Error(`Page not found: ${item.slug}`)
+  }
+}
+
+  // custom type must have url
+  if (item.type === 'custom') {
+    if (!item.url || !item.url.trim()) {
+      throw new Error('Custom items must have a url')
+    }
+  }
+}
+
+// ─── Services ─────────────────────────────────────────────
+
+// GET all menus with items
+export async function getAllMenus() {
+  return prisma.menu.findMany({
+    include: {
+      items: {
+        orderBy: { order: 'asc' },
+      },
+    },
+  })
+}
+
+// GET single menu by ID
+export async function getMenuById(id) {
+  // fix 8: proper error handling
+  const menu = await prisma.menu.findUnique({
+    where: { id: Number(id) },
+    include: {
+      items: {
+        orderBy: { order: 'asc' },
+      },
+    },
+  })
+
+  if (!menu) {
+    throw new Error('Menu not found')
+  }
+
+  return menu
+}
+
+// GET menu by location — fix 6: findUnique since location is now @unique
+export async function getMenuByLocation(location) {
+  validateLocation(location)
+
+  const menu = await prisma.menu.findUnique({
+    where: { location },
+    include: {
+      items: {
+        orderBy: { order: 'asc' },
+      },
+    },
+  })
+
+  if (!menu) {
+    throw new Error(`No menu found for location: ${location}`)
+  }
+
+  return menu
+}
+
+// CREATE menu
+export async function createMenu(input) {
+  const { name, location, items = [] } = input
+
+  // fix 1: validate location
+  validateLocation(location)
+
+  // fix 2 + 3 + 4: validate each item
+  await Promise.all(items.map(async (item, index) => {
+    try {
+      await validateMenuItem(item)
+    } catch (err) {
+      throw new Error(`Item ${index + 1}: ${err.message}`)
+    }
+  }))
+
+  return prisma.menu.create({
+    data: {
+      name,
+      location,
+      items: {
+        create: items.map((item, index) => ({
+          label: item.label.trim(),
+          type: item.type,                // fix 3
+          slug: item.slug?.trim() ?? null,
+          url: item.url?.trim() ?? null,
+          order: item.order ?? index,
+        })),
+      },
+    },
+    include: {
+      items: {
+        orderBy: { order: 'asc' },
+      },
+    },
+  })
+}
+
+// UPDATE menu — fix 7: also updates items (delete + recreate)
+export async function updateMenu(id, input) {
+  const { name, location, items } = input
+
+  // fix 8: check menu exists first
+  await getMenuById(id)
+
+  // fix 1: validate location if provided
+  if (location) {
+    validateLocation(location)
+  }
+
+  // fix 7: if items provided — delete all old + recreate
+  if (items !== undefined) {
+
+    // fix 2 + 3 + 4: validate each new item
+    await Promise.all(items.map(async (item, index) => {
+      try {
+        await validateMenuItem(item)
+      } catch (err) {
+        throw new Error(`Item ${index + 1}: ${err.message}`)
+      }
+    }))
+
+    // delete old items (cascade handles this but explicit is cleaner here)
+    await prisma.menuItem.deleteMany({
+      where: { menuId: Number(id) },
+    })
+
+    // recreate with new items
+    await prisma.menuItem.createMany({
+      data: items.map((item, index) => ({
+        label: item.label.trim(),
+        type: item.type,                // fix 3
+        slug: item.slug?.trim() ?? null,
+        url: item.url?.trim() ?? null,
+        order: item.order ?? index,
+        menuId: Number(id),
+      })),
+    })
+  }
+
+  // update menu name/location
+  return prisma.menu.update({
+    where: { id: Number(id) },
+    data: {
+      ...(name && { name }),
+      ...(location && { location }),
+    },
+    include: {
+      items: {
+        orderBy: { order: 'asc' },
+      },
+    },
+  })
+}
+
+// DELETE menu — fix 5: cascade handles items automatically
+export async function deleteMenu(id) {
+  // fix 8: check exists first
+  await getMenuById(id)
+
+  return prisma.menu.delete({
+    where: { id: Number(id) },
+  })
+}
+
+// ─── Menu Items ───────────────────────────────────────────
+
+// ADD item to menu
+export async function addMenuItem(menuId, input) {
+  // fix 8: check menu exists
+  await getMenuById(menuId)
+
+  // fix 2 + 3 + 4: validate item
+  await validateMenuItem(input)
+
+  const lastItem = await prisma.menuItem.findFirst({
+    where: { menuId: Number(menuId) },
+    orderBy: { order: 'desc' },
+  })
+
+  const nextOrder = lastItem ? lastItem.order + 1 : 0
+
+  return prisma.menuItem.create({
+    data: {
+      label: input.label.trim(),
+      type: input.type,                 // fix 3
+      slug: input.slug?.trim() ?? null,
+      url: input.url?.trim() ?? null,
+      order: input.order ?? nextOrder,
+      menuId: Number(menuId),
+    },
+  })
+}
+
+// UPDATE single item
+export async function updateMenuItem(itemId, input) {
+  // fix 8: check item exists
+  const existing = await prisma.menuItem.findUnique({
+    where: { id: Number(itemId) },
+  })
+
+  if (!existing) {
+    throw new Error('Menu item not found')
+  }
+
+  // fix 2 + 3 + 4: validate updated item
+  await validateMenuItem(input)
+
+  return prisma.menuItem.update({
+    where: { id: Number(itemId) },
+    data: {
+      label: input.label.trim(),
+      type: input.type,                 // fix 3
+      slug: input.slug?.trim() ?? null,
+      url: input.url?.trim() ?? null,
+      order: input.order ?? existing.order,
+    },
+  })
+}
+
+// DELETE single item
+export async function deleteMenuItem(itemId) {
+  // fix 8: check exists
+  const existing = await prisma.menuItem.findUnique({
+    where: { id: Number(itemId) },
+  })
+
+  if (!existing) {
+    throw new Error('Menu item not found')
+  }
+
+  return prisma.menuItem.delete({
+    where: { id: Number(itemId) },
+  })
+}
+
+// REORDER items — accepts array of { id, order }
+export async function reorderMenuItems(items) {
+  // fix 8: validate input
+  if (!Array.isArray(items) || items.length === 0) {
+    throw new Error('Items must be a non-empty array')
+  }
+
+  items.forEach((item, index) => {
+    if (!item.id) throw new Error(`Item ${index + 1} is missing an id`)
+    if (item.order === undefined) throw new Error(`Item ${index + 1} is missing an order`)
+  })
+
+  const updates = items.map((item) =>
+    prisma.menuItem.update({
+      where: { id: Number(item.id) },
+      data: { order: item.order },
+    })
+  )
+
+  return prisma.$transaction(updates)
+}
