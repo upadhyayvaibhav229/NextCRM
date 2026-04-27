@@ -50,18 +50,19 @@ export function PagesSection() {
   // REMOVE this entire function - no more createNewPage()
   // const createNewPage = async () => { ... }
 
-  const savePage = async () => {
-    if (!editingPage) return;
+  const savePage = async (pageToSave?: Page) => {
+    const finalPage = pageToSave || editingPage;
+if (!finalPage) return;
 
     try {
       setLoading(true);
       const updatedPage = {
-        ...editingPage,
+        ...finalPage,
         // modified: new Date().toISOString().split("T")[0],
       };
 
       let savedPage;
-      
+
       if (isNewPage) {
         // This is a NEW page - CREATE it in backend
         const res = await pageService.create(updatedPage);
@@ -69,9 +70,9 @@ export function PagesSection() {
         setPages([...pages, savedPage]);
       } else {
         // This is an EXISTING page - UPDATE it
-        const res = await pageService.update(editingPage.id, updatedPage);
+        const res = await pageService.update(finalPage.id, updatedPage);
         savedPage = res.data?.data || res.data;
-        const existingIndex = pages.findIndex((p) => p.id === editingPage.id);
+        const existingIndex = pages.findIndex((p) => p.id === finalPage.id);
         if (existingIndex >= 0) {
           const newPages = [...pages];
           newPages[existingIndex] = savedPage;
@@ -167,7 +168,14 @@ export function PagesSection() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              {["Title", "Slug", "Status", "Created at","Updated at", "Actions"].map((h) => (
+              {[
+                "Title",
+                "Slug",
+                "Status",
+                "Created at",
+                "Updated at",
+                "Actions",
+              ].map((h) => (
                 <th
                   key={h}
                   className={`p-4 text-sm font-medium text-muted-foreground ${

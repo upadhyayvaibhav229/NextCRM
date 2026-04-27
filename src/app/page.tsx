@@ -10,6 +10,7 @@ import { Sidebar } from "@/src/components/admin/sidebar"
 import { useState, useEffect } from "react"
 
 
+
 export default function CMSAdminPanel() {
   const [activeSection, setActiveSection] = useState("pages")
   const [collapsed, setCollapsed] = useState(false)

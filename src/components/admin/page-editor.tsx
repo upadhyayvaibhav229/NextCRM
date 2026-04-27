@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, X, Eye, Check } from "lucide-react";
-import Editor from "@monaco-editor/react";
 import { Page } from "./Cms";
+import { PageEditorHeader } from "./PageEditorHeader";
+import { PageEditorContent } from "./PageEditorContent";
+import { PageEditorSidebar } from "./PageEditorSidebar";
 
 interface PageEditorProps {
   page: Page;
   pages: Page[];
   onChange: (page: Page) => void;
-  onSave: () => void;
+  onSave: (pageToSave?: Page) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -20,179 +21,56 @@ export function PageEditor({
   onSave,
   onCancel,
 }: PageEditorProps) {
-  const [activeTab, setActiveTab] = useState<"html" | "css" | "js">("html");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const generateSlug = (title: string) =>
-    title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-
-  const checkSlug = async (slug: string) => {
+  const handleSave = async () => {
+    setIsSaving(true);
     try {
-      const res = await fetch(`/api/pages/slug/${slug}/check`, {
-        method: "POST",
-        body: JSON.stringify({ excludeId: page.id }),
-      });
-
-      const data = await res.json();
-      console.log("Slug available:", data.data.available);
-    } catch (err) {
-      console.error(err);
+      await onSave(page);
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const openPreview = () => {
-    const updatedPages = pages.map((p) => (p.id === page.id ? page : p));
-    const isNewPage = !pages.find((p) => p.id === page.id);
-    const allPages = isNewPage ? [...pages, page] : updatedPages;
-    localStorage.setItem("cms_pages", JSON.stringify(allPages));
-    window.open(`/preview/${page.slug}`, "_blank");
-  };
+  const handlePublish = async () => {
+    const updatedPage = {
+      ...page,
+      status: "published",
+    };
 
-  // Get language based on active tab
-  const getLanguage = () => {
-    switch (activeTab) {
-      case "html":
-        return "html";
-      case "css":
-        return "css";
-      case "js":
-        return "javascript";
-      default:
-        return "html";
+    onChange(updatedPage);
+
+    setIsSaving(true);
+    try {
+      await onSave(updatedPage);
+    } finally {
+      setIsSaving(false);
     }
-  };
-
-  // Editor options for better experience
-  const editorOptions = {
-    minimap: { enabled: false },
-    fontSize: 14,
-    lineNumbers: "on",
-    roundedSelection: false,
-    scrollBeyondLastLine: false,
-    automaticLayout: true,
-    tabSize: 2,
-    wordWrap: "on",
-    formatOnPaste: true,
-    formatOnType: true,
-    autoClosingBrackets: "always",
-    autoClosingQuotes: "always",
-    autoIndent: "full",
-    suggestOnTriggerCharacters: true,
-    acceptSuggestionOnEnter: "on",
-    quickSuggestions: {
-      other: true,
-      comments: true,
-      strings: true,
-    },
-    parameterHints: { enabled: true },
-    bracketPairColorization: { enabled: true },
-    guides: { bracketPairs: true },
-    renderWhitespace: "selection",
-    smoothScrolling: true,
-    cursorSmoothCaretAnimation: "on",
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Editor Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-card">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onCancel}
-            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X size={18} />
-          </button>
-          <div>
-            <input
-              type="text"
-              value={page.title}
-              onChange={(e) => {
-                const value = e.target.value;
-                const newSlug = generateSlug(value);
+    <div className="flex flex-col h-full bg-[#f0f0f1] min-h-screen font-sans">
+      <PageEditorHeader
+        page={page}
+        onChange={onChange}
+        onCancel={onCancel}
+        onSave={handleSave}
+        isSaving={isSaving}
+      />
 
-                onChange({
-                  ...page,
-                  title: value,
-                  slug: newSlug,
-                });
+      <div className="flex flex-1 gap-6 p-6 max-w-[1400px] w-full mx-auto">
+        <div className="flex-1 flex flex-col gap-4 min-w-0">
+          <PageEditorContent page={page} onChange={onChange} />
+        </div>
 
-                checkSlug(newSlug);
-              }}
-              className="bg-transparent text-lg font-bold text-foreground border-none outline-none w-full"
-              placeholder="Page Title"
-            />
-            <p className="font-mono text-xs text-muted-foreground">
-              /pages/{page.slug} → app/[slug]/page.tsx
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() =>
-              onChange({
-                ...page,
-                status: page.status === "published" ? "draft" : "published",
-              })
-            }
-            className={`px-3 py-1.5 text-sm font-medium transition-all ${
-              page.status === "published"
-                ? "bg-success/20 text-success"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {page.status === "published" ? "Published" : "Draft"}
-          </button>
-          <button
-            onClick={openPreview}
-            className="flex items-center gap-2 px-4 py-1.5 bg-muted text-foreground text-sm font-medium hover:bg-muted/80 transition-colors"
-          >
-            <Eye size={16} />
-            Preview
-          </button>
-          <button
-            onClick={onSave}
-            className="flex items-center gap-2 px-4 py-1.5 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-          >
-            <Check size={16} />
-            Save
-          </button>
-        </div>
-      </div>
-
-      {/* Code Editor */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex border-b border-border bg-muted/30">
-          {(["html", "css", "js"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-mono uppercase transition-colors ${
-                activeTab === tab
-                  ? "text-primary border-b-2 border-primary bg-card"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-          <div className="flex-1" />
-          <div className="flex items-center gap-2 px-4 text-xs font-mono text-muted-foreground">
-            <Eye size={14} />
-            Click Preview to open in new tab
-          </div>
-        </div>
-        <div className="flex-1 relative">
-          <Editor
-            height="100%"
-            language={getLanguage()}
-            value={page[activeTab]}
-            onChange={(value) => onChange({ ...page, [activeTab]: value || "" })}
-            theme="vs-dark"
-            options={editorOptions}
-            loading={<div className="flex items-center justify-center h-full">Loading editor...</div>}
+        <div className="w-[280px] shrink-0 flex flex-col gap-4">
+          <PageEditorSidebar
+            page={page}
+            pages={pages}
+            onChange={onChange}
+            onSave={handleSave}
+            onPublish={handlePublish}
+            isSaving={isSaving}
           />
         </div>
       </div>

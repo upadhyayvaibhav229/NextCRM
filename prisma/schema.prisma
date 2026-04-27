@@ -25,6 +25,52 @@ model Page {
   updatedAt DateTime @updatedAt
 }
 
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Post {
+  id              String      @id @default(cuid())
+  title           String
+  slug            String      @unique
+  excerpt         String?
+  content         String      @db.Text
+  featuredImage   String?
+
+  status          ContentStatus  @default(DRAFT)
+
+  seoTitle        String?
+  seoDescription  String?
+
+  publishedAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  categories      Category[]
+  tags            Tag[]
+}
+
+
+model Category {
+  id              String @id @default(cuid())
+  name            String
+  slug            String @unique
+  description     String?
+
+  posts            Post[]
+
+}
+
+model Tag {
+  id              String @id @default(cuid())
+  name            String
+  slug            String @unique
+  
+
+  posts           Post[]
+}
+
 
 model Menu {
   id       Int        @id @default(autoincrement())
@@ -34,15 +80,19 @@ model Menu {
 }
 
 model MenuItem {
-  id     Int     @id @default(autoincrement())
-  label  String
-  type   String  // ← fix 3: "page" | "custom"
-  slug   String?
-  url    String?
-  order  Int
+  id       Int        @id @default(autoincrement())
+  label    String
+  type     String
+  slug     String?
+  url      String?
+  order    Int
 
-  menuId Int
-  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade) // ← fix 5
+  menuId   Int
+  menu     Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  parentId Int?
+  parent   MenuItem?  @relation("MenuItemChildren", fields: [parentId], references: [id])
+  children MenuItem[] @relation("MenuItemChildren")
 }
 
 

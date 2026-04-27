@@ -38,7 +38,7 @@ export const PUT = asyncHandler(async (req, { params }) => {
     throw new ApiError(400, 'Items array is required')
   }
 
-  const reordered = await reorderMenuItems(items)
+  const reordered = await reorderMenuItems(Number(id), items)
 
   return Response.json(
     new ApiResponse(200, reordered, 'Menu items reordered successfully')

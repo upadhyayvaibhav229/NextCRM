@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import Link from "next/link"
+import Link from "next/link";
 
 interface MenuItem {
-  id: string
-  label: string
-  type: "page" | "custom"
-  pageId?: string
-  slug?: string
-  url?: string
-  children: MenuItem[]
+  id: string;
+  label: string;
+  type: "page" | "custom";
+  pageId?: string;
+  slug?: string;
+  url?: string;
+  children: MenuItem[];
 }
 
 interface MenuData {
-  id: string
-  name: string
-  location: "primary" | "footer" | "none"
-  items: MenuItem[]
+  id: string;
+  name: string;
+  location: "primary" | "footer" | "none";
+  items: MenuItem[];
 }
 
 interface NavbarProps {
-  menu: MenuData | null
-  siteName?: string
+  menu: MenuData | null;
+  siteName?: string;
 }
 
 export function Navbar({ menu, siteName = "My Website" }: NavbarProps) {
@@ -54,7 +54,48 @@ export function Navbar({ menu, siteName = "My Website" }: NavbarProps) {
           }
         `}</style>
       </nav>
-    )
+    );
+  }
+
+  function buildTree(items: any[]) {
+    const map = new Map();
+
+    items.forEach((item) => {
+      map.set(item.id, { ...item, children: [] });
+    });
+
+    const roots: any[] = [];
+
+    items.forEach((item) => {
+      if (item.parentId) {
+        map.get(item.parentId)?.children.push(map.get(item.id));
+      } else {
+        roots.push(map.get(item.id));
+      }
+    });
+
+    return roots;
+  }
+
+  function renderMenuItems(items: any[]) {
+    return items.map((item) => {
+      const href =
+        item.type === "page" && item.slug
+          ? `/preview/${item.slug}`
+          : item.url || "#";
+
+      return (
+        <li key={item.id} className="navbar-item">
+          <Link href={href} className="navbar-link">
+            {item.label}
+          </Link>
+
+          {item.children?.length > 0 && (
+            <ul className="submenu">{renderMenuItems(item.children)}</ul>
+          )}
+        </li>
+      );
+    });
   }
 
   return (
@@ -64,19 +105,7 @@ export function Navbar({ menu, siteName = "My Website" }: NavbarProps) {
           {siteName}
         </Link>
         <ul className="navbar-menu">
-          {menu.items.map((item) => {
-            const href = item.type === "page" && item.slug 
-              ? `/preview/${item.slug}` 
-              : item.url || "#"
-            
-            return (
-              <li key={item.id} className="navbar-item">
-                <Link href={href} className="navbar-link">
-                  {item.label}
-                </Link>
-              </li>
-            )
-          })}
+          {renderMenuItems(buildTree(menu.items))}
         </ul>
       </div>
       <style jsx>{`
@@ -91,6 +120,14 @@ export function Navbar({ menu, siteName = "My Website" }: NavbarProps) {
           display: flex;
           align-items: center;
           justify-content: space-between;
+        }
+        .submenu {
+          list-style: none;
+          margin: 0.5rem 0 0 1rem;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
         }
         .navbar-brand {
           font-weight: 700;
@@ -119,34 +156,37 @@ export function Navbar({ menu, siteName = "My Website" }: NavbarProps) {
         }
       `}</style>
     </nav>
-  )
+  );
 }
 
 // Footer component for footer menu location
 export function Footer({ menu }: { menu: MenuData | null }) {
-  const currentYear = new Date().getFullYear()
-  
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer className="footer">
       <div className="footer-container">
         {menu && menu.items.length > 0 && (
           <ul className="footer-menu">
             {menu.items.map((item) => {
-              const href = item.type === "page" && item.slug 
-                ? `/preview/${item.slug}` 
-                : item.url || "#"
-              
+              const href =
+                item.type === "page" && item.slug
+                  ? `/preview/${item.slug}`
+                  : item.url || "#";
+
               return (
                 <li key={item.id} className="footer-item">
                   <Link href={href} className="footer-link">
                     {item.label}
                   </Link>
                 </li>
-              )
+              );
             })}
           </ul>
         )}
-        <p className="footer-copyright">© {currentYear} My Website. All rights reserved.</p>
+        <p className="footer-copyright">
+          © {currentYear} My Website. All rights reserved.
+        </p>
       </div>
       <style jsx>{`
         .footer {
@@ -186,5 +226,5 @@ export function Footer({ menu }: { menu: MenuData | null }) {
         }
       `}</style>
     </footer>
-  )
+  );
 }
