@@ -81,7 +81,7 @@ export function Navbar({ menu, siteName = "My Website" }: NavbarProps) {
     return items.map((item) => {
       const href =
         item.type === "page" && item.slug
-          ? `/preview/${item.slug}`
+          ? `/${item.slug}`
           : item.url || "#";
 
       return (
@@ -171,7 +171,7 @@ export function Footer({ menu }: { menu: MenuData | null }) {
             {menu.items.map((item) => {
               const href =
                 item.type === "page" && item.slug
-                  ? `/preview/${item.slug}`
+                  ? `/${item.slug}`
                   : item.url || "#";
 
               return (

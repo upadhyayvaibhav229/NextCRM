@@ -1,8 +1,9 @@
 "use client";
 
 import { ArrowLeft, Eye } from "lucide-react";
-import { Page } from "./Cms";
+import { Page } from "../Cms";
 import { useState } from "react";
+import { ThemeToggle } from "@/src/components/theme-toggle";
 
 interface PageEditorHeaderProps {
   page: Page;
@@ -42,37 +43,38 @@ export function PageEditorHeader({
   };
 
   const openPreview = () => {
-    window.open(`/preview/${page.slug}`, "_blank");
+    window.open(`/${page.slug}`, "_blank");
   };
 
   return (
-    <div className="bg-white border-b border-[#dcdcde] shadow-sm">
+    <div className="bg-card border-b border-border shadow-sm">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-[#dcdcde]">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-border">
         <div className="flex items-center gap-3">
           <button
             onClick={onCancel}
-            className="flex items-center gap-1.5 text-sm text-[#3c434a] hover:text-[#2271b1] transition-colors"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft size={16} />
             All Pages
           </button>
-          <span className="text-[#dcdcde]">|</span>
-          <span className="text-sm font-semibold text-[#1d2327]">
+          <span className="text-border">|</span>
+          <span className="text-sm font-semibold text-foreground">
             Edit Page
           </span>
           <button
             onClick={onCancel}
-            className="ml-2 px-3 py-1 text-sm text-[#2271b1] border border-[#2271b1] hover:bg-[#2271b1] hover:text-white transition-colors rounded"
+            className="ml-2 px-3 py-1 text-sm text-primary border border-primary hover:bg-primary hover:text-primary-foreground transition-colors rounded"
           >
             Add Page
           </button>
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <button
             onClick={openPreview}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[#3c434a] border border-[#dcdcde] bg-white hover:bg-[#f6f7f7] transition-colors rounded"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground border border-border bg-background hover:bg-muted hover:text-foreground transition-colors rounded"
           >
             <Eye size={14} />
             Preview
@@ -87,16 +89,16 @@ export function PageEditorHeader({
           value={page.title}
           onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Add title"
-          className="w-full text-[26px] font-normal text-[#1d2327] border border-[#dcdcde] bg-white px-4 py-3 rounded focus:outline-none focus:border-[#2271b1] focus:shadow-[0_0_0_1px_#2271b1] placeholder:text-[#9ca3af]"
+          className="w-full text-[26px] font-normal text-foreground border border-border bg-background px-4 py-3 rounded focus:outline-none focus:border-primary focus:shadow-[0_0_0_1px_var(--primary)] placeholder:text-muted-foreground"
           style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
         />
 
         {/* Permalink row */}
-        <div className="flex items-center gap-2 mt-2 text-sm text-[#3c434a]">
+        <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
           <span className="font-medium">Permalink:</span>
           {slugEditing ? (
             <div className="flex items-center gap-2">
-              <span className="text-[#2271b1]">
+              <span className="text-primary">
                 {typeof window !== "undefined"
                   ? `${window.location.origin}/`
                   : "/"}
@@ -104,13 +106,13 @@ export function PageEditorHeader({
               <input
                 value={slugInput}
                 onChange={(e) => setSlugInput(e.target.value)}
-                className="border border-[#2271b1] px-2 py-0.5 text-sm rounded focus:outline-none"
+                className="border border-primary bg-background px-2 py-0.5 text-sm text-foreground rounded focus:outline-none"
                 autoFocus
               />
-              <span className="text-[#2271b1]">/</span>
+              <span className="text-primary">/</span>
               <button
                 onClick={handleSlugSave}
-                className="px-2 py-0.5 text-xs bg-[#2271b1] text-white rounded hover:bg-[#135e96] transition-colors"
+                className="px-2 py-0.5 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
               >
                 OK
               </button>
@@ -119,7 +121,7 @@ export function PageEditorHeader({
                   setSlugInput(page.slug);
                   setSlugEditing(false);
                 }}
-                className="px-2 py-0.5 text-xs border border-[#dcdcde] rounded hover:bg-[#f6f7f7] transition-colors"
+                className="px-2 py-0.5 text-xs border border-border rounded hover:bg-muted transition-colors"
               >
                 Cancel
               </button>
@@ -129,7 +131,7 @@ export function PageEditorHeader({
               <a
                 href={`/${page.slug}`}
                 target="_blank"
-                className="text-[#2271b1] hover:underline"
+                className="text-primary hover:underline"
               >
                 {typeof window !== "undefined"
                   ? `${window.location.origin}/`
@@ -138,7 +140,7 @@ export function PageEditorHeader({
               </a>
               <button
                 onClick={() => setSlugEditing(true)}
-                className="px-2 py-0.5 text-xs border border-[#dcdcde] bg-white rounded hover:bg-[#f6f7f7] transition-colors"
+                className="px-2 py-0.5 text-xs border border-border bg-background rounded hover:bg-muted transition-colors"
               >
                 Edit
               </button>

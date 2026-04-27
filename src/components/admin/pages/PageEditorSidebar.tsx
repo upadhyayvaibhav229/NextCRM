@@ -1,6 +1,6 @@
 "use client";
 
-import { Page } from "./Cms";
+import { Page } from "../Cms";
 import { FeaturedImagePanel } from "./FeaturedImagePanel";
 import { PageAttributesPanel } from "./PageAttributesPanel";
 import { PublishPanel } from "./publishPannel";

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
-import { Page } from "./Cms";
+import { Page } from "../Cms";
 
 interface PageAttributesPanelProps {
   page: Page;
@@ -21,13 +21,15 @@ export function PageAttributesPanel({
   const parentOptions = pages.filter((p) => p.id !== page.id);
 
   return (
-    <div className="bg-white border border-[#dcdcde] rounded shadow-sm overflow-hidden">
+    <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
       {/* Panel Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-[#f6f7f7] border-b border-[#dcdcde]">
-        <h2 className="text-sm font-semibold text-[#1d2327]">Page Attributes</h2>
+      <div className="flex items-center justify-between px-3 py-2 bg-muted border-b border-border">
+        <h2 className="text-sm font-semibold text-foreground">
+          Page Attributes
+        </h2>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="text-[#787c82] hover:text-[#1d2327] transition-colors"
+          className="text-muted-foreground hover:text-foreground transition-colors"
         >
           {collapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
         </button>
@@ -37,7 +39,7 @@ export function PageAttributesPanel({
         <div className="px-3 py-3 space-y-4">
           {/* Parent */}
           <div>
-            <label className="block text-sm font-medium text-[#1d2327] mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Parent
             </label>
             <select
@@ -48,7 +50,7 @@ export function PageAttributesPanel({
                   parentId: e.target.value ? Number(e.target.value) : null,
                 } as any)
               }
-              className="w-full text-sm border border-[#dcdcde] bg-white px-2 py-1.5 rounded focus:outline-none focus:border-[#2271b1] text-[#3c434a]"
+              className="w-full text-sm border border-border bg-background px-2 py-1.5 rounded focus:outline-none focus:border-primary text-foreground"
             >
               <option value="">(no parent)</option>
               {parentOptions.map((p) => (
@@ -61,7 +63,7 @@ export function PageAttributesPanel({
 
           {/* Template */}
           <div>
-            <label className="block text-sm font-medium text-[#1d2327] mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Template
             </label>
             <select
@@ -69,7 +71,7 @@ export function PageAttributesPanel({
               onChange={(e) =>
                 onChange({ ...page, template: e.target.value } as any)
               }
-              className="w-full text-sm border border-[#dcdcde] bg-white px-2 py-1.5 rounded focus:outline-none focus:border-[#2271b1] text-[#3c434a]"
+              className="w-full text-sm border border-border bg-background px-2 py-1.5 rounded focus:outline-none focus:border-primary text-foreground"
             >
               <option value="default">Default template</option>
               <option value="full-width">Full Width</option>
@@ -80,7 +82,7 @@ export function PageAttributesPanel({
 
           {/* Order */}
           <div>
-            <label className="block text-sm font-medium text-[#1d2327] mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Order
             </label>
             <input
@@ -89,12 +91,12 @@ export function PageAttributesPanel({
               onChange={(e) =>
                 onChange({ ...page, order: Number(e.target.value) } as any)
               }
-              className="w-20 text-sm border border-[#dcdcde] bg-white px-2 py-1.5 rounded focus:outline-none focus:border-[#2271b1] text-[#3c434a]"
+              className="w-20 text-sm border border-border bg-background px-2 py-1.5 rounded focus:outline-none focus:border-primary text-foreground"
             />
           </div>
 
           {/* Help text */}
-          <p className="text-xs text-[#787c82]">
+          <p className="text-xs text-muted-foreground">
             Need help? Use the Help tab above the screen title.
           </p>
         </div>

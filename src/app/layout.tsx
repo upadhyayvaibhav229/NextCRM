@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Syne, Space_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { ThemeProvider } from '@/src/components/theme-provider'
 import './globals.css'
 
 const syne = Syne({ 
@@ -45,10 +46,21 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${syne.variable} ${spaceMono.variable} bg-background`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${syne.variable} ${spaceMono.variable} bg-background`}
+    >
       <body className="font-sans antialiased">
-        {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          {process.env.NODE_ENV === 'production' && <Analytics />}
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronUp, ChevronDown, Eye, Clock, Calendar } from "lucide-react";
-import { Page } from "./Cms";
+import { Page } from "../Cms";
 
 interface PublishPanelProps {
   page: Page;
@@ -11,7 +11,6 @@ interface PublishPanelProps {
   onPublish: () => void;
   isSaving: boolean;
 }
-
 
 export function PublishPanel({
   page,
@@ -27,13 +26,13 @@ export function PublishPanel({
   const isPublished = page.status === "published";
 
   return (
-    <div className="bg-white border border-[#dcdcde] rounded shadow-sm overflow-hidden">
+    <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
       {/* Panel Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-[#f6f7f7] border-b border-[#dcdcde]">
-        <h2 className="text-sm font-semibold text-[#1d2327]">Publish</h2>
+      <div className="flex items-center justify-between px-3 py-2 bg-muted border-b border-border">
+        <h2 className="text-sm font-semibold text-foreground">Publish</h2>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="text-[#787c82] hover:text-[#1d2327] transition-colors"
+          className="text-muted-foreground hover:text-foreground transition-colors"
         >
           {collapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
         </button>
@@ -42,19 +41,17 @@ export function PublishPanel({
       {!collapsed && (
         <>
           {/* Save Draft + Preview */}
-          <div className="flex items-center gap-2 px-3 py-3 border-b border-[#dcdcde]">
+          <div className="flex items-center gap-2 px-3 py-3 border-b border-border">
             <button
               onClick={onSave}
               disabled={isSaving}
-              className="px-3 py-1.5 text-sm border border-[#dcdcde] bg-white text-[#3c434a] rounded hover:bg-[#f6f7f7] transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 text-sm border border-border bg-background text-foreground rounded hover:bg-muted transition-colors disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save Draft"}
             </button>
             <button
-              onClick={() =>
-                window.open(`/preview/${page.slug}`, "_blank")
-              }
-              className="flex items-center gap-1 px-3 py-1.5 text-sm text-[#2271b1] hover:text-[#135e96] transition-colors"
+              onClick={() => window.open(`/preview/${page.slug}`, "_blank")}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
             >
               <Eye size={14} />
               Preview
@@ -62,10 +59,10 @@ export function PublishPanel({
           </div>
 
           {/* Status rows */}
-          <div className="px-3 py-3 space-y-2 border-b border-[#dcdcde]">
+          <div className="px-3 py-3 space-y-2 border-b border-border">
             {/* Status */}
-            <div className="flex items-center gap-2 text-sm text-[#3c434a]">
-              <Clock size={14} className="text-[#787c82]" />
+            <div className="flex items-center gap-2 text-sm text-foreground">
+              <Clock size={14} className="text-muted-foreground" />
               <span className="font-medium">Status:</span>
               {editingStatus ? (
                 <div className="flex items-center gap-2 ml-auto">
@@ -74,14 +71,14 @@ export function PublishPanel({
                     onChange={(e) =>
                       onChange({ ...page, status: e.target.value })
                     }
-                    className="text-xs border border-[#dcdcde] px-1 py-0.5 rounded focus:outline-none"
+                    className="text-xs border border-border bg-background text-foreground px-1 py-0.5 rounded focus:outline-none"
                   >
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
                   </select>
                   <button
                     onClick={() => setEditingStatus(false)}
-                    className="text-xs text-[#2271b1] hover:underline"
+                    className="text-xs text-primary hover:underline"
                   >
                     OK
                   </button>
@@ -91,7 +88,7 @@ export function PublishPanel({
                   {isPublished ? "Published" : "Draft"}
                   <button
                     onClick={() => setEditingStatus(true)}
-                    className="ml-2 text-xs text-[#2271b1] hover:underline"
+                    className="ml-2 text-xs text-primary hover:underline"
                   >
                     Edit
                   </button>
@@ -100,14 +97,14 @@ export function PublishPanel({
             </div>
 
             {/* Visibility */}
-            <div className="flex items-center gap-2 text-sm text-[#3c434a]">
-              <Eye size={14} className="text-[#787c82]" />
+            <div className="flex items-center gap-2 text-sm text-foreground">
+              <Eye size={14} className="text-muted-foreground" />
               <span className="font-medium">Visibility:</span>
               <span className="ml-auto">
                 Public
                 <button
                   onClick={() => setEditingVisibility(!editingVisibility)}
-                  className="ml-2 text-xs text-[#2271b1] hover:underline"
+                  className="ml-2 text-xs text-primary hover:underline"
                 >
                   Edit
                 </button>
@@ -116,10 +113,10 @@ export function PublishPanel({
 
             {/* Publish date */}
             {isPublished && (
-              <div className="flex items-center gap-2 text-sm text-[#3c434a]">
-                <Calendar size={14} className="text-[#787c82]" />
+              <div className="flex items-center gap-2 text-sm text-foreground">
+                <Calendar size={14} className="text-muted-foreground" />
                 <span className="font-medium">Published on:</span>
-                <span className="ml-auto text-xs text-[#787c82]">
+                <span className="ml-auto text-xs text-muted-foreground">
                   {page.publishedAt
                     ? new Date(page.publishedAt).toLocaleDateString("en-US", {
                         month: "short",
@@ -134,13 +131,13 @@ export function PublishPanel({
 
           {/* Action buttons */}
           <div className="flex items-center justify-between px-3 py-3">
-            <button className="text-xs text-[#b32d2e] hover:text-[#a02020] hover:underline transition-colors">
+            <button className="text-xs text-destructive hover:text-destructive/80 hover:underline transition-colors">
               Move to Trash
             </button>
             <button
               onClick={onPublish}
               disabled={isSaving}
-              className="px-4 py-1.5 text-sm font-medium bg-[#2271b1] text-white rounded hover:bg-[#135e96] transition-colors disabled:opacity-50"
+              className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               {isSaving ? "Publishing..." : isPublished ? "Update" : "Publish"}
             </button>

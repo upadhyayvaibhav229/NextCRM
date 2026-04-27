@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Page } from "./Cms";
+import { Page } from "../Cms";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
@@ -48,8 +48,8 @@ function ToolbarButton({
       title={title}
       className={`p-1.5 rounded transition-colors ${
         active
-          ? "bg-[#2271b1] text-white"
-          : "text-[#3c434a] hover:bg-[#f0f0f1] hover:text-[#1d2327]"
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
       }`}
     >
       {children}
@@ -58,7 +58,7 @@ function ToolbarButton({
 }
 
 function ToolbarDivider() {
-  return <div className="w-px h-5 bg-[#dcdcde] mx-1" />;
+  return <div className="w-px h-5 bg-border mx-1" />;
 }
 
 // ─── Visual Tab (TipTap WYSIWYG) ─────────────────────────
@@ -86,7 +86,7 @@ function VisualEditor({
     editorProps: {
       attributes: {
         class:
-          "prose max-w-none focus:outline-none min-h-[400px] text-[#1d2327] text-[15px] leading-relaxed",
+          "prose max-w-none focus:outline-none min-h-[400px] text-foreground text-[15px] leading-relaxed",
       },
     },
   });
@@ -110,7 +110,7 @@ function VisualEditor({
   return (
     <>
       {/* WYSIWYG Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-[#dcdcde] bg-[#f6f7f7]">
+      <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-border bg-muted">
         <select
           onChange={(e) => {
             if (!editor) return;
@@ -123,7 +123,7 @@ function VisualEditor({
                 .setHeading({ level: Number(val) as 1 | 2 | 3 | 4 | 5 | 6 })
                 .run();
           }}
-          className="text-xs border border-[#dcdcde] bg-white px-2 py-1 rounded text-[#3c434a] focus:outline-none mr-1"
+          className="text-xs border border-border bg-background px-2 py-1 rounded text-foreground focus:outline-none mr-1"
         >
           <option value="p">Paragraph</option>
           <option value="1">Heading 1</option>
@@ -246,7 +246,9 @@ function CodeEditor({
   page: Page;
   onChange: (page: Page) => void;
 }) {
-  const [activeCodeTab, setActiveCodeTab] = useState<"html" | "css" | "js">("html");
+  const [activeCodeTab, setActiveCodeTab] = useState<"html" | "css" | "js">(
+    "html",
+  );
 
   const monacoOptions = {
     minimap: { enabled: false },
@@ -315,17 +317,17 @@ export function PageEditorContent({ page, onChange }: PageEditorContentProps) {
   const [activeTab, setActiveTab] = useState<"visual" | "code">("visual");
 
   return (
-    <div className="bg-white border border-[#dcdcde] rounded shadow-sm overflow-hidden">
+    <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
       {/* Visual | Code top-level tabs — aligned right like WordPress */}
-      <div className="flex justify-end border-b border-[#dcdcde] bg-white px-3">
+      <div className="flex justify-end border-b border-border bg-card px-3">
         {(["visual", "code"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors ${
               activeTab === tab
-                ? "text-[#1d2327] border-b-2 border-[#1d2327]"
-                : "text-[#787c82] hover:text-[#1d2327]"
+                ? "text-foreground border-b-2 border-foreground"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab}

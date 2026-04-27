@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Page } from "./Cms";
+import { Page } from "../Cms";
 import { PageEditorHeader } from "./PageEditorHeader";
 import { PageEditorContent } from "./PageEditorContent";
 import { PageEditorSidebar } from "./PageEditorSidebar";
@@ -49,7 +49,7 @@ export function PageEditor({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#f0f0f1] min-h-screen font-sans">
+    <div className="flex flex-col h-full bg-background min-h-screen font-sans">
       <PageEditorHeader
         page={page}
         onChange={onChange}

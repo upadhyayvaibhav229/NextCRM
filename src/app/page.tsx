@@ -1,29 +1,30 @@
-"use client"
+"use client";
 
-import { MenuData, Page } from "@/src/components/admin/Cms"
-import { DashboardSection } from "@/src/components/admin/dashboard-section"
-import { initialMenus, initialPages } from "@/src/components/admin/data"
-import { MenusSection } from "@/src/components/admin/menus-section"
-import { PagesSection } from "@/src/components/admin/pages-section"
-import { GlobalCssSection, SettingsSection } from "@/src/components/admin/settings-section"
-import { Sidebar } from "@/src/components/admin/sidebar"
-import { useState, useEffect } from "react"
-
-
+import { MenuData, Page } from "@/src/components/admin/Cms";
+import { DashboardSection } from "@/src/components/admin/dashboard-section";
+import { initialMenus, initialPages } from "@/src/components/admin/data";
+import { MenusSection } from "@/src/components/admin/menus-section";
+import { PagesSection } from "@/src/components/admin/pages/pages-section";
+import {
+  GlobalCssSection,
+  SettingsSection,
+} from "@/src/components/admin/settings-section";
+import { Sidebar } from "@/src/components/admin/sidebar";
+import { useState, useEffect } from "react";
 
 export default function CMSAdminPanel() {
-  const [activeSection, setActiveSection] = useState("pages")
-  const [collapsed, setCollapsed] = useState(false)
-  const [pages, setPages] = useState<Page[]>(initialPages)
-  const [menus, setMenus] = useState<MenuData[]>(initialMenus)
+  const [activeSection, setActiveSection] = useState("pages");
+  const [collapsed, setCollapsed] = useState(false);
+  const [pages, setPages] = useState<Page[]>(initialPages);
+  const [menus, setMenus] = useState<MenuData[]>(initialMenus);
 
   useEffect(() => {
-    localStorage.setItem("cms_pages", JSON.stringify(pages))
-  }, [pages])
+    localStorage.setItem("cms_pages", JSON.stringify(pages));
+  }, [pages]);
 
   useEffect(() => {
-    localStorage.setItem("cms_menus", JSON.stringify(menus))
-  }, [menus])
+    localStorage.setItem("cms_menus", JSON.stringify(menus));
+  }, [menus]);
 
   return (
     <div className="flex h-screen bg-background">
@@ -45,5 +46,5 @@ export default function CMSAdminPanel() {
         {activeSection === "global-css" && <GlobalCssSection />}
       </main>
     </div>
-  )
+  );
 }

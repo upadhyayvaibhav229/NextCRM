@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { Page } from "./Cms";
+import { Page } from "../Cms";
 import { pageService } from "@/src/services/PageServices";
 import { PageEditor } from "./page-editor";
 
@@ -52,7 +52,7 @@ export function PagesSection() {
 
   const savePage = async (pageToSave?: Page) => {
     const finalPage = pageToSave || editingPage;
-if (!finalPage) return;
+    if (!finalPage) return;
 
     try {
       setLoading(true);
