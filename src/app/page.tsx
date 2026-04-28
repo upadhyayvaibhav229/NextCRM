@@ -5,12 +5,15 @@ import { DashboardSection } from "@/src/components/admin/dashboard-section";
 import { initialMenus, initialPages } from "@/src/components/admin/data";
 import { MenusSection } from "@/src/components/admin/menus-section";
 import { PagesSection } from "@/src/components/admin/pages/pages-section";
+import { CategoryTable } from "@/src/components/admin/category/category-table";
+import { PostsSection } from "@/src/components/admin/posts/PostSection";
 import {
   GlobalCssSection,
   SettingsSection,
 } from "@/src/components/admin/settings-section";
 import { Sidebar } from "@/src/components/admin/sidebar";
 import { useState, useEffect } from "react";
+import { TagTable } from "../components/admin/tags/Tags";
 
 export default function CMSAdminPanel() {
   const [activeSection, setActiveSection] = useState("pages");
@@ -34,8 +37,19 @@ export default function CMSAdminPanel() {
         collapsed={collapsed}
         setCollapsed={setCollapsed}
       />
-      <main className="flex-1 overflow-hidden dot-grid">
+      <main className="flex-1 min-w-0 overflow-y-auto dot-grid">
         {activeSection === "dashboard" && <DashboardSection />}
+        {activeSection === "all-posts" && <PostsSection />}
+        {activeSection === "categories" && (
+          <div className="p-8">
+            <CategoryTable />
+          </div>
+        )}
+        {activeSection === "tags" && (
+          <div className="p-8">
+            <TagTable />
+          </div>
+        )}
         {activeSection === "pages" && (
           <PagesSection pages={pages} setPages={setPages} />
         )}

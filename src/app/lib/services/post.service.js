@@ -1,114 +1,138 @@
-// import { ta } from "date-fns/locale";
-import { prisma } from "../prisma.js";
+// lib/services/posts.service.js
 
+import { prisma } from "../prisma.js";
 
 // ─── Helpers ──────────────────────────────────────────────
 
-function generateSlug(text) {
-    return text
-        .toLowerCase()
-        .replace(/[^\w ]+/g, "") // remove all non-word chars
-        .replace(/ +/g, "-"); // replace spaces with hyphens
+function generateSlug(title) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
 }
 
-const ensureuniqueSlug = async (model, slug, exculdeId = null) => {
-    const exisiting  = await model.findUnique(
-        {
-            where: {
-                slug
-            }
-        }
-    )
-    if (!exisiting) return slug
-
-    if (exculdeId && exisiting.id === exculdeId) return slug;
-    throw new Error(`Slug "${slug}" is already taken`);
-
+async function ensureUniqueSlug(model, slug, excludeId = null) {
+  const existing = await model.findUnique(
+    { 
+      where: { 
+        slug 
+      } 
+    }
+  );
+  if (!existing) return slug;
+  if (excludeId && existing.id === excludeId) return slug;
+  throw new Error(`Slug "${slug}" is already taken`);
 }
 
-// get all posts
-export async function getPosts() {
-    return prisma.post.findMany({
-        orderBy: { createdAt: "desc" },
-        select: {
-            id: true,
-            title: true,
-            slug: true,
-            status: true,
-            excerpt: true,
-            publishedAt: true,
-            createdAt: true,
-            updatedAt: true,
-            categories: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
-            tags: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            }
-        }
-    });
+
+// ═══════════════════════════════════════════════════════════
+// TAG SERVICES
+// ═══════════════════════════════════════════════════════════
+
+export async function getAllTags() {
+  return prisma.tag.findMany({
+    orderBy: { name: "asc" },
+    include: { _count: { select: { posts: true } } },
+  });
 }
 
-// get post by id
+export async function getTagById(id) {
+  return prisma.tag.findUnique({
+    where: { id },
+    include: { posts: { select: { id: true, title: true, slug: true } } },
+  });
+}
+
+export async function createTag(input) {
+  const slug = input.slug?.trim()
+    ? generateSlug(input.slug)
+    : generateSlug(input.name);
+  await ensureUniqueSlug(prisma.tag, slug);
+  return prisma.tag.create({
+    data: { name: input.name, slug },
+  });
+}
+
+export async function updateTag(id, input) {
+  const { id: _, ...rest } = input;
+  if (rest.name && !rest.slug) rest.slug = generateSlug(rest.name);
+  if (rest.slug) {
+    rest.slug = generateSlug(rest.slug);
+    await ensureUniqueSlug(prisma.tag, rest.slug, id);
+  }
+  return prisma.tag.update({ where: { id }, data: rest });
+}
+
+export async function deleteTag(id) {
+  return prisma.tag.delete({ where: { id } });
+}
+
+// ═══════════════════════════════════════════════════════════
+// POST SERVICES
+// ═══════════════════════════════════════════════════════════
+
+export async function getAllPosts() {
+  return prisma.post.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      status: true,
+      excerpt: true,
+      publishedAt: true,
+      createdAt: true,
+      updatedAt: true,
+      categories: { select: { id: true, name: true } },
+      tags: { select: { id: true, name: true } },
+    },
+  });
+}
+
 export async function getPostById(id) {
-    return prisma.post.findUnique({
-        where: { id },
-        include: {
-            categories: true,
-            tags: true
-        }
-    })
+  return prisma.post.findUnique({
+    where: { id },
+    include: {
+      categories: true,
+      tags: true,
+    },
+  });
 }
 
 export async function getPostBySlug(slug) {
-    return prisma.post.findFirst({
-        where: { slug, status: "PUBLISHED" },
-        include: {
-            categories: true,
-            tags: true
-        }
-    })
+  return prisma.post.findFirst({
+    where: { slug },
+    include: { 
+      categories: true, 
+      tags: true 
+    },
+  });
 }
 
-export async function getPublishedPosts(){
-    return prisma.post.findMany({
-        where: { status: "PUBLISHED" },
-        orderBy: { createdAt: "desc" },
-        select: {
-            id: true,
-            title: true,
-            slug: true,
-            excerpt: true,
-            featuredImage: true,
-            publishedAt: true,
-            categories: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            },
-            tags: {
-                select: {
-                    id: true,
-                    name: true,
-                }
-            }
-        }
-    })
-};
-
+export async function getPublishedPosts() {
+  return prisma.post.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: { publishedAt: "desc" },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      excerpt: true,
+      featuredImage: true,
+      publishedAt: true,
+      categories: { select: { id: true, name: true, slug: true } },
+      tags: { select: { id: true, name: true, slug: true } },
+    },
+  });
+}
 
 export async function createPost(input) {
   const slug = input.slug?.trim()
     ? generateSlug(input.slug)
     : generateSlug(input.title);
-  await ensureuniqueSlug(prisma.post, slug);
+  await ensureUniqueSlug(prisma.post, slug);
 
   const { categoryIds = [], tagIds = [], ...rest } = input;
 

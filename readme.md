@@ -60,3 +60,52 @@ app/api/
         └── [location]/
             └── route.js               GET
 ```
+
+
+Here's every API endpoint:
+
+**Posts**
+```
+GET     /api/posts
+POST    /api/posts
+GET     /api/posts/[id]
+PUT     /api/posts/[id]
+DELETE  /api/posts/[id]
+POST    /api/posts/[id]/publish
+POST    /api/posts/[id]/unpublish
+POST    /api/posts/slug/[slug]/check
+```
+
+**Categories**
+```
+GET     /api/categories
+POST    /api/categories
+GET     /api/categories/[id]
+PUT     /api/categories/[id]
+DELETE  /api/categories/[id]
+```
+
+**Tags**
+```
+GET     /api/tags
+POST    /api/tags
+GET     /api/tags/[id]
+PUT     /api/tags/[id]
+DELETE  /api/tags/[id]
+```
+
+app/api/
+├── posts/
+│   ├── route.js                      GET (all)  POST (create)
+│   ├── [id]/
+│   │   ├── route.js                  GET  PUT  DELETE
+│   │   ├── publish/route.js          POST
+│   │   └── unpublish/route.js        POST
+│   └── slug/[slug]/check/route.js    POST (slug availability)
+├── categories/
+│   ├── route.js                      GET  POST
+│   └── [id]/route.js                 GET  PUT  DELETE
+└── tags/
+    ├── route.js                      GET  POST
+    └── [id]/route.js                 GET  PUT  DELETE
+

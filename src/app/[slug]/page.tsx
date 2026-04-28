@@ -139,7 +139,7 @@ export default function PreviewPage() {
       .map((item) => {
         const href =
           item.type === "page" && item.slug
-            ? `/preview/${item.slug}`
+            ? `/${item.slug}`
             : item.url || "#";
 
         const childrenHtml =
@@ -344,7 +344,7 @@ export default function PreviewPage() {
 <body>
   <nav class="cms-navbar">
     <div class="cms-navbar-inner">
-      <a href="/preview/home" class="cms-brand" onclick="handleNav(event, '/preview/home')">My Website</a>
+      <a href="/home" class="cms-brand" onclick="handleNav(event, '/home')">My Website</a>
 <ul class="cms-menu">
   ${headerMenu ? mapItems(buildTree(headerMenu.items), "cms-link") : ""}
 </ul>   

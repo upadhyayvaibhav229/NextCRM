@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Page } from "../Cms";
+// import { Post } from "../Cms";
+
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
@@ -24,10 +25,11 @@ import {
   AlignJustify,
   Minus,
 } from "lucide-react";
+import { Post } from "./Post.type";
 
-interface PageEditorContentProps {
-  page: Page;
-  onChange: (page: Page) => void;
+interface PostEditorContentProps {
+  post: Post;
+  onChange: (post: Post) => void;
 }
 
 function ToolbarButton({
@@ -67,13 +69,14 @@ const sanitizeHtml = (html: string) => {
     .replace(/<p><\/p>/g, "")
     .replace(/<p>\s*<\/p>/g, "");
 };
+
 function VisualEditor({
-  page,
+  post,
   onChange,
   activeTab,
 }: {
-  page: Page;
-  onChange: (page: Page) => void;
+  post: Post;
+  onChange: (post: Post) => void;
   activeTab: "visual" | "code";
 }) {
   const editor = useEditor({
@@ -85,11 +88,11 @@ function VisualEditor({
       Link.configure({ openOnClick: false }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
-    content: page.html || "",
+    content: post.content || "",
     
     onUpdate: ({ editor }) => {
       const cleanHtml = sanitizeHtml(editor.getHTML());
-      onChange({ ...page, html: cleanHtml });
+      onChange({ ...post, content: cleanHtml });
     },
     editorProps: {
       attributes: {
@@ -102,15 +105,17 @@ function VisualEditor({
   useEffect(() => {
     if (!editor) return;
 
-    if (page.html !== editor.getHTML()) {
-      editor.commands.setContent(page.html || "");
+    if (post.content !== editor.getHTML()) {
+      editor.commands.setContent(post.content || "");
     }
   }, [activeTab]);
+  
   useEffect(() => {
-    if (editor && page.html !== editor.getHTML()) {
-      editor.commands.setContent(page.html || "");
+    if (editor && post.content !== editor.getHTML()) {
+      editor.commands.setContent(post.content || "");
     }
-  }, [page.html, activeTab]);
+  }, [post.content, activeTab]);
+  
   const addLink = () => {
     const url = window.prompt("Enter URL:");
     if (url && editor) editor.chain().focus().setLink({ href: url }).run();
@@ -251,19 +256,15 @@ function VisualEditor({
   );
 }
 
-// ─── Code Tab (Monaco with HTML / CSS / JS sub-tabs) ─────
+// ─── Code Tab (Monaco with HTML content) ─────────────────
 
 function CodeEditor({
-  page,
+  post,
   onChange,
 }: {
-  page: Page;
-  onChange: (page: Page) => void;
+  post: Post;
+  onChange: (post: Post) => void;
 }) {
-  const [activeCodeTab, setActiveCodeTab] = useState<"html" | "css" | "js">(
-    "html",
-  );
-
   const monacoOptions = {
     minimap: { enabled: false },
     fontSize: 14,
@@ -282,36 +283,22 @@ function CodeEditor({
     cursorSmoothCaretAnimation: "on" as const,
   };
 
-  const languageMap = { html: "html", css: "css", js: "javascript" };
-
   return (
     <>
-      {/* HTML / CSS / JS sub-tabs */}
-      <div className="flex border-b border-[#dcdcde] bg-[#1e1e1e]">
-        {(["html", "css", "js"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveCodeTab(tab)}
-            className={`px-5 py-2.5 text-sm font-mono uppercase tracking-wide transition-colors ${
-              activeCodeTab === tab
-                ? "text-white border-b-2 border-[#2271b1] bg-[#252526]"
-                : "text-[#858585] hover:text-white hover:bg-[#2a2d2e]"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      {/* Sub-tab indicator for code editor */}
+      <div className="flex border-b border-[#dcdcde] bg-[#1e1e1e] px-3">
+        <div className="px-5 py-2.5 text-sm font-mono uppercase tracking-wide text-white border-b-2 border-[#2271b1] bg-[#252526]">
+          HTML
+        </div>
       </div>
 
       {/* Monaco editor */}
-      <div className="h-[500px]">
+      <div className="" style={{ height: "450px" }}>
         <Editor
           height="100%"
-          language={languageMap[activeCodeTab]}
-          value={page[activeCodeTab] ?? ""}
-          onChange={(value) =>
-            onChange({ ...page, [activeCodeTab]: value || "" })
-          }
+          language="html"
+          value={post.content ?? ""}
+          onChange={(value) => onChange({ ...post, content: value || "" })}
           theme="vs-dark"
           options={monacoOptions}
           loading={
@@ -327,7 +314,7 @@ function CodeEditor({
 
 // ─── Main Export ──────────────────────────────────────────
 
-export function PageEditorContent({ page, onChange }: PageEditorContentProps) {
+export function PostEditorContent({ post, onChange }: PostEditorContentProps) {
   const [activeTab, setActiveTab] = useState<"visual" | "code">("visual");
 
   return (
@@ -351,9 +338,9 @@ export function PageEditorContent({ page, onChange }: PageEditorContentProps) {
 
       {/* Render active tab */}
       {activeTab === "visual" ? (
-        <VisualEditor page={page} onChange={onChange} activeTab={activeTab} />
+        <VisualEditor post={post} onChange={onChange} activeTab={activeTab} />
       ) : (
-        <CodeEditor page={page} onChange={onChange} />
+        <CodeEditor post={post} onChange={onChange} />
       )}
     </div>
   );

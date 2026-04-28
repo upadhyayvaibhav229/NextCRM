@@ -12,7 +12,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 model Page {
   id        Int      @id @default(autoincrement())
   title     String
@@ -20,7 +19,7 @@ model Page {
   html      String
   css       String?
   js        String?
-  status    String   // draft | published
+  status    String // draft | published
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -31,70 +30,72 @@ enum ContentStatus {
 }
 
 model Post {
-  id              String      @id @default(cuid())
-  title           String
-  slug            String      @unique
-  excerpt         String?
-  content         String      @db.Text
-  featuredImage   String?
+  id            String  @id @default(cuid())
+  title         String
+  slug          String  @unique
+  excerpt       String?
+  content       String  @db.Text
+  featuredImage String?
 
-  status          ContentStatus  @default(DRAFT)
+  status ContentStatus @default(DRAFT)
 
-  seoTitle        String?
-  seoDescription  String?
+  seoTitle       String?
+  seoDescription String?
 
-  publishedAt     DateTime?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  format      String    @default("standard")
 
-  categories      Category[]
-  tags            Tag[]
+  
+  categories Category[]
+  tags       Tag[]
 }
-
 
 model Category {
-  id              String @id @default(cuid())
-  name            String
-  slug            String @unique
-  description     String?
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
 
-  posts            Post[]
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
 
+  posts       Post[]
 }
+
 
 model Tag {
-  id              String @id @default(cuid())
-  name            String
-  slug            String @unique
-  
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
 
-  posts           Post[]
+  posts Post[]
 }
-
 
 model Menu {
   id       Int        @id @default(autoincrement())
   name     String
-  location String     @default("none")  // ← remove @unique, allow none
+  location String     @default("none") // ← remove @unique, allow none
   items    MenuItem[]
 }
 
 model MenuItem {
-  id       Int        @id @default(autoincrement())
-  label    String
-  type     String
-  slug     String?
-  url      String?
-  order    Int
+  id    Int     @id @default(autoincrement())
+  label String
+  type  String
+  slug  String?
+  url   String?
+  order Int
 
-  menuId   Int
-  menu     Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  menuId Int
+  menu   Menu @relation(fields: [menuId], references: [id], onDelete: Cascade)
 
   parentId Int?
   parent   MenuItem?  @relation("MenuItemChildren", fields: [parentId], references: [id])
   children MenuItem[] @relation("MenuItemChildren")
 }
-
 
 model User {
   id       Int    @id @default(autoincrement())

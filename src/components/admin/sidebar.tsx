@@ -10,8 +10,23 @@ import {
   LogOut,
   User,
   Code,
+  Sparkles,
+  Newspaper,
+  FolderOpen,
+  Hash,
+  PlusCircle,
+  ChevronDown,
 } from "lucide-react";
 import { ThemeToggle } from "@/src/components/theme-toggle";
+import { useState } from "react";
+
+interface NavItem {
+  id: string;
+  label: string;
+  icon: any;
+  description?: string;
+  children?: NavItem[];
+}
 
 interface SidebarProps {
   activeSection: string;
@@ -20,26 +35,68 @@ interface SidebarProps {
   setCollapsed: (collapsed: boolean) => void;
 }
 
-const navItems = [
+const navItems: NavItem[] = [
   {
     id: "dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    path: "/admin",
+    description: "Overview & analytics",
   },
-  { id: "pages", label: "Pages", icon: FileText, path: "/admin/pages" },
-  { id: "menus", label: "Menus", icon: Menu, path: "/admin/menus" },
   {
-    id: "settings",
-    label: "Settings",
-    icon: Settings,
-    path: "/admin/settings",
+    id: "posts",
+    label: "Posts",
+    icon: Newspaper,
+    description: "Manage blog posts",
+    children: [
+      {
+        id: "all-posts",
+        label: "All Posts",
+        icon: FileText,
+        description: "View all posts",
+      },
+      {
+        id: "categories",
+        label: "Categories",
+        icon: FolderOpen,
+        description: "Manage categories",
+      },
+      {
+        id: "tags",
+        label: "Tags",
+        icon: Hash,
+        description: "Manage tags",
+      },
+      // {
+      //   id: "add-new",
+      //   label: "Add New",
+      //   icon: PlusCircle,
+      //   description: "Create new post",
+      // },
+    ],
+  },
+  {
+    id: "pages",
+    label: "Pages",
+    icon: FileText,
+    description: "Manage content",
+  },
+  {
+    id: "menus",
+    label: "Menus",
+    icon: Menu,
+    description: "Navigation structure",
   },
   {
     id: "global-css",
     label: "Global CSS",
     icon: Code,
-    path: "/admin/setting/global-css",
+    description: "Styling & themes",
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    description: "System configuration",
   },
 ];
 
@@ -49,83 +106,203 @@ export function Sidebar({
   collapsed,
   setCollapsed,
 }: SidebarProps) {
-  return (
-    <aside
-      className={`flex flex-col h-screen bg-sidebar border-r border-sidebar-border transition-all duration-200 ${
-        collapsed ? "w-16" : "w-56"
-      }`}
-    >
-      {/* Logo */}
-      <div className="flex items-center h-14 px-4 border-b border-sidebar-border">
-        {!collapsed && (
-          <span className="font-sans font-bold text-lg text-sidebar-foreground tracking-tight">
-            CMS
-          </span>
-        )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="ml-auto p-1 text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
-        >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </button>
-      </div>
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
-      {/* Navigation */}
-      <nav className="flex-1 py-4">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSection === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveSection(item.id)}
-              className={`flex items-center gap-3 w-full px-4 py-2.5 text-left transition-all duration-200 relative ${
-                isActive
-                  ? "text-sidebar-primary bg-sidebar-accent"
-                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-              }`}
-            >
-              {isActive && (
-                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-sidebar-primary glow-accent" />
-              )}
-              <Icon size={18} />
-              {!collapsed && (
-                <span className="text-sm font-medium">{item.label}</span>
-              )}
-              {!collapsed && (
-                <span className="ml-auto text-[10px] font-mono text-sidebar-foreground/45">
-                  {item.path}
+  const toggleMenu = (menuId: string) => {
+    setExpandedMenus(prev =>
+      prev.includes(menuId)
+        ? prev.filter(id => id !== menuId)
+        : [...prev, menuId]
+    );
+  };
+
+  const renderNavItem = (item: NavItem, depth = 0) => {
+    const Icon = item.icon;
+    const isActive = activeSection === item.id;
+    const isHovered = hoveredItem === item.id;
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedMenus.includes(item.id);
+
+    return (
+      <div key={item.id} className="space-y-1">
+        <button
+          onClick={() => {
+            if (hasChildren && !collapsed) {
+              setActiveSection(item.id);
+              toggleMenu(item.id);
+            } else {
+              setActiveSection(item.id);
+            }
+          }}
+          onMouseEnter={() => setHoveredItem(item.id)}
+          onMouseLeave={() => setHoveredItem(null)}
+          className={`group relative flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${
+            depth > 0 ? "pl-10" : ""
+          } ${
+            isActive
+              ? "bg-gradient-to-r from-sidebar-primary/20 to-sidebar-primary/5 text-sidebar-primary shadow-sm"
+              : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/30"
+          }`}
+        >
+          {/* Active indicator */}
+          {isActive && !hasChildren && (
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-sidebar-primary to-sidebar-primary/60 rounded-r-full glow-accent" />
+          )}
+
+          {/* Icon */}
+          <div
+            className={`relative transition-transform duration-200 ${
+              isHovered && !collapsed ? "scale-110" : ""
+            }`}
+          >
+            <Icon size={20} strokeWidth={isActive ? 2 : 1.5} />
+            {collapsed && isHovered && (
+              <div className="absolute left-full ml-3 px-2 py-1 bg-sidebar-foreground text-sidebar text-xs font-medium rounded-md whitespace-nowrap z-50 shadow-lg">
+                {item.label}
+                <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-sidebar-foreground" />
+              </div>
+            )}
+          </div>
+
+          {!collapsed && (
+            <div className="flex-1 text-left overflow-hidden">
+              <span className="text-sm font-medium block truncate">
+                {item.label}
+              </span>
+              {item.description && (
+                <span className="text-[11px] text-sidebar-foreground/40 block truncate">
+                  {item.description}
                 </span>
               )}
-            </button>
-          );
-        })}
-      </nav>
+            </div>
+          )}
 
-      {/* User */}
-      <div className="space-y-3 border-t border-sidebar-border p-4">
-        <ThemeToggle collapsed={collapsed} />
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-sidebar-primary/20 flex items-center justify-content-center">
-            <User size={16} className="text-sidebar-primary" />
+          {/* Expand/collapse icon for children */}
+          {!collapsed && hasChildren && (
+            <ChevronDown
+              size={16}
+              className={`transition-transform duration-200 ${
+                isExpanded ? "rotate-180" : ""
+              }`}
+            />
+          )}
+        </button>
+
+        {/* Render children if expanded */}
+        {!collapsed && hasChildren && isExpanded && (
+          <div className="ml-4 space-y-1 border-l border-sidebar-border/50 pl-3">
+            {item.children?.map(child => renderNavItem(child, depth + 1))}
           </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {/* Mobile overlay */}
+      <div
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+          !collapsed ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setCollapsed(true)}
+      />
+
+      <aside
+        className={`fixed lg:relative flex flex-col h-screen bg-gradient-to-b from-sidebar to-sidebar/95 backdrop-blur-sm border-r border-sidebar-border transition-all duration-300 ease-in-out z-50 ${
+          collapsed ? "w-20" : "w-72"
+        }`}
+      >
+        {/* Logo Section */}
+        <div className="flex items-center h-16 px-5 border-b border-sidebar-border/50 bg-gradient-to-r from-sidebar/50 to-transparent">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-primary/60 flex items-center justify-center shadow-lg">
+              <Sparkles size={18} className="text-white" />
+            </div>
+            {!collapsed && (
+              <div className="overflow-hidden">
+                <span className="font-sans font-bold text-xl bg-gradient-to-r from-sidebar-foreground to-sidebar-foreground/80 bg-clip-text text-transparent">
+                  CMS Admin
+                </span>
+                <div className="text-[10px] text-sidebar-foreground/40 font-mono">
+                  v2.0.0
+                </div>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="ml-auto p-2 rounded-lg text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-200"
+          >
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 py-6 px-3 space-y-1.5 ">
+          {navItems.map(item => renderNavItem(item))}
+        </nav>
+
+        {/* Bottom Section */}
+        <div className="space-y-4 border-t border-sidebar-border/50 p-4">
+          <div className="px-1">
+            <ThemeToggle collapsed={collapsed} />
+          </div>
+
+          {/* User Profile */}
+          <div className="group relative">
+            <div
+              className={`flex items-center gap-3 rounded-xl transition-all duration-200 ${
+                !collapsed ? "p-2 hover:bg-sidebar-accent/30" : "justify-center"
+              }`}
+            >
+              <div className="relative">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary/30 to-sidebar-primary/10 flex items-center justify-center ring-2 ring-sidebar-primary/20 group-hover:ring-sidebar-primary/40 transition-all">
+                  <User size={18} className="text-sidebar-primary" />
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-sidebar" />
+              </div>
+
+              {!collapsed && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-sidebar-foreground truncate">
+                    Alex Johnson
+                  </p>
+                  <p className="text-xs text-sidebar-foreground/50 truncate">
+                    admin@cms.dev
+                  </p>
+                </div>
+              )}
+
+              {!collapsed && (
+                <button className="p-1.5 rounded-lg text-sidebar-foreground/40 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200">
+                  <LogOut size={16} />
+                </button>
+              )}
+            </div>
+
+            {/* Tooltip for collapsed state */}
+            {collapsed && (
+              <div className="absolute left-full ml-3 bottom-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+                <div className="px-2 py-1 bg-sidebar-foreground text-sidebar text-xs font-medium rounded-md whitespace-nowrap shadow-lg">
+                  Alex Johnson
+                  <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-sidebar-foreground" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Version info */}
           {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">
-                Admin
-              </p>
-              <p className="text-xs text-sidebar-foreground/60 truncate">
-                admin@cms.dev
+            <div className="px-3 pt-2 text-center">
+              <p className="text-[10px] text-sidebar-foreground/30 font-mono ">
+                © 2024 CMS Platform
               </p>
             </div>
           )}
-          {!collapsed && (
-            <button className="p-1 text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors">
-              <LogOut size={16} />
-            </button>
-          )}
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

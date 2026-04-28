@@ -1,0 +1,262 @@
+"use client";
+
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useMenusPreview } from "@/src/hooks/useMenusPreview";
+
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  featuredImage?: string | null;
+  publishedAt?: string | null;
+  categories?: { id: string; name: string; slug: string }[];
+  tags?: { id: string; name: string; slug: string }[];
+}
+
+export default function PublicPostPage() {
+  const params = useParams<{ slug: string }>();
+  const router = useRouter();
+  const slug = params.slug;
+
+  const [post, setPost] = useState<Post | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const { menus, loading: menusLoading } = useMenusPreview();
+
+  // Handle navigation from iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "NAVIGATE" && typeof event.data.url === "string") {
+        router.push(event.data.url);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [router]);
+
+  // Fetch post by slug
+  useEffect(() => {
+    if (!slug) return;
+    const fetchPost = async () => {
+      try {
+        const res = await fetch(`/api/posts/slug/${slug}`);
+        const data = await res.json();
+        if (data.success && data.data) {
+          setPost(data.data);
+          setNotFound(false);
+        } else {
+          setNotFound(true);
+        }
+      } catch {
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPost();
+  }, [slug]);
+
+  const headerMenu = useMemo(() => menus.find((m) => m.location === "header"), [menus]);
+  const footerMenu = useMemo(() => menus.find((m) => m.location === "footer"), [menus]);
+
+  if (loading || menusLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white text-gray-600">
+        Loading...
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white px-6">
+        <div className="text-center">
+          <h1 className="text-6xl font-bold text-gray-900">404</h1>
+          <p className="mt-3 text-lg text-gray-600">Post not found: /posts/{slug}</p>
+          <a href="/" className="mt-4 inline-block text-blue-600 hover:underline">
+            ← Back to home
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (!post) return null;
+
+  const buildTree = (items: any[]) => {
+    const map = new Map();
+    items.forEach((item) => map.set(item.id, { ...item, children: [] }));
+    const roots: any[] = [];
+    items.forEach((item) => {
+      if (item.parentId) map.get(item.parentId)?.children.push(map.get(item.id));
+      else roots.push(map.get(item.id));
+    });
+    return roots;
+  };
+
+  const mapItems = (items: any[], className: string): string =>
+    items
+      .map((item) => {
+        const href = item.type === "page" && item.slug ? `/${item.slug}` : item.url || "#";
+        const children =
+          item.children?.length > 0
+            ? `<ul class="cms-submenu">${mapItems(item.children, className)}</ul>`
+            : "";
+        return `<li>
+          <a href="${href}" class="${className}" onclick="handleNav(event,'${href}')">${item.label}</a>
+          ${children}
+        </li>`;
+      })
+      .join("");
+
+  const publishedDate = post.publishedAt
+    ? new Date(post.publishedAt).toLocaleDateString("en-US", {
+        year: "numeric", month: "long", day: "numeric",
+      })
+    : "";
+
+  const categoriesHtml = post.categories?.length
+    ? `<div class="post-cats">
+        ${post.categories.map((c) => `<a href="/posts?category=${c.slug}" class="post-cat" onclick="handleNav(event,'/posts?category=${c.slug}')">${c.name}</a>`).join("")}
+       </div>`
+    : "";
+
+  const tagsHtml = post.tags?.length
+    ? `<div class="post-tags">
+        ${post.tags.map((t) => `<a href="/posts?tag=${t.slug}" class="post-tag" onclick="handleNav(event,'/posts?tag=${t.slug}')">#${t.name}</a>`).join("")}
+       </div>`
+    : "";
+
+  const featuredImageHtml = post.featuredImage
+    ? `<div class="post-featured-image">
+        <img src="${post.featuredImage}" alt="${post.title}" />
+       </div>`
+    : "";
+
+  const fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${post.title}</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;min-height:100vh;font-family:system-ui,-apple-system,sans-serif;line-height:1.6}
+    body{display:flex;flex-direction:column;background:#fff;color:#111827}
+
+    /* ── Navbar ── */
+    .cms-navbar{position:sticky;top:0;z-index:100;background:#fff;border-bottom:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    .cms-navbar-inner,.cms-footer-inner{width:min(1200px,calc(100% - 2rem));margin:0 auto}
+    .cms-navbar-inner{display:flex;align-items:center;justify-content:space-between;padding:1rem 0;gap:1rem}
+    .cms-brand{color:#111827;text-decoration:none;font-size:1.25rem;font-weight:700}
+    .cms-menu{display:flex;gap:.25rem;list-style:none;margin:0;padding:0;align-items:center}
+    .cms-menu>li{position:relative}
+    .cms-link{display:block;color:#374151;text-decoration:none;font-weight:500;font-size:.9rem;padding:.5rem .75rem;border-radius:6px;transition:background .15s,color .15s;white-space:nowrap}
+    .cms-link:hover{background:#f3f4f6;color:#111827}
+    .cms-menu>li:has(.cms-submenu)>.cms-link::after{content:'';display:inline-block;margin-left:6px;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:4px solid currentColor;vertical-align:middle;opacity:.6;transition:transform .2s}
+    .cms-menu>li:has(.cms-submenu):hover>.cms-link::after{transform:rotate(180deg)}
+    .cms-submenu{position:absolute;top:100%;left:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.10);list-style:none;margin:0;padding:.375rem;padding-top:10px;opacity:0;visibility:hidden;transition:opacity .18s,visibility .18s;pointer-events:none;z-index:200}
+    .cms-menu>li:hover>.cms-submenu,.cms-submenu li:hover>.cms-submenu{opacity:1;visibility:visible;pointer-events:auto}
+    .cms-menu>li::after{content:'';position:absolute;bottom:-10px;left:0;right:0;height:10px;background:transparent}
+    .cms-submenu .cms-submenu{top:-.375rem;left:calc(100% + 6px)}
+    .cms-submenu li{position:relative}
+    .cms-submenu a{display:block;padding:.5rem .875rem;color:#374151;text-decoration:none;font-size:.875rem;border-radius:7px;transition:background .12s}
+    .cms-submenu a:hover{background:#f3f4f6;color:#111827}
+
+    /* ── Post Layout ── */
+    .post-wrapper{flex:1;width:min(740px,calc(100% - 2rem));margin:3rem auto;padding-bottom:4rem}
+
+    /* ── Categories above title ── */
+    .post-cats{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+    .post-cat{display:inline-block;padding:.25rem .75rem;background:#f3f4f6;color:#374151;text-decoration:none;font-size:.75rem;font-weight:600;border-radius:999px;text-transform:uppercase;letter-spacing:.05em;transition:background .15s}
+    .post-cat:hover{background:#e5e7eb}
+
+    /* ── Title ── */
+    .post-title{font-size:clamp(1.75rem,4vw,2.75rem);font-weight:800;color:#111827;line-height:1.2;margin:0 0 1rem;letter-spacing:-.02em}
+
+    /* ── Meta ── */
+    .post-meta{display:flex;align-items:center;gap:1rem;color:#6b7280;font-size:.875rem;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid #e5e7eb}
+
+    /* ── Featured image ── */
+    .post-featured-image{margin-bottom:2rem;border-radius:12px;overflow:hidden}
+    .post-featured-image img{width:100%;height:auto;display:block;max-height:480px;object-fit:cover}
+
+    /* ── Content ── */
+    .post-content{font-size:1.0625rem;line-height:1.8;color:#1f2937}
+    .post-content h1,.post-content h2,.post-content h3,.post-content h4{font-weight:700;color:#111827;margin:2rem 0 .75rem;line-height:1.3}
+    .post-content h1{font-size:1.875rem}
+    .post-content h2{font-size:1.5rem}
+    .post-content h3{font-size:1.25rem}
+    .post-content p{margin:0 0 1.25rem}
+    .post-content a{color:#2563eb;text-decoration:underline}
+    .post-content img{max-width:100%;height:auto;border-radius:8px;margin:1.5rem 0}
+    .post-content blockquote{border-left:4px solid #e5e7eb;padding:.75rem 1.25rem;color:#6b7280;font-style:italic;margin:1.5rem 0;background:#f9fafb;border-radius:0 8px 8px 0}
+    .post-content ul,.post-content ol{padding-left:1.5rem;margin:0 0 1.25rem}
+    .post-content li{margin-bottom:.375rem}
+    .post-content pre{background:#1f2937;color:#f9fafb;padding:1.25rem;border-radius:8px;overflow-x:auto;font-size:.875rem;margin:1.5rem 0}
+    .post-content code{background:#f3f4f6;padding:.125rem .375rem;border-radius:4px;font-size:.875em}
+    .post-content pre code{background:none;padding:0}
+    .post-content hr{border:none;border-top:1px solid #e5e7eb;margin:2rem 0}
+
+    /* ── Tags ── */
+    .post-tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e5e7eb}
+    .post-tag{display:inline-block;padding:.25rem .75rem;background:#f3f4f6;color:#6b7280;text-decoration:none;font-size:.8rem;border-radius:999px;transition:background .15s,color .15s}
+    .post-tag:hover{background:#e5e7eb;color:#111827}
+
+    /* ── Footer ── */
+    .cms-footer{margin-top:auto;background:#111827;color:#9ca3af}
+    .cms-footer-inner{padding:2rem 0;text-align:center}
+    .cms-footer-menu{display:flex;gap:1.5rem;list-style:none;margin:0 auto 1rem;padding:0;justify-content:center}
+    .cms-footer-link{color:#9ca3af;text-decoration:none;font-size:.875rem}
+    .cms-footer-link:hover{color:#fff}
+  </style>
+</head>
+<body>
+  <nav class="cms-navbar">
+    <div class="cms-navbar-inner">
+      <a href="/" class="cms-brand" onclick="handleNav(event,'/')">My Website</a>
+      <ul class="cms-menu">
+        ${headerMenu ? mapItems(buildTree(headerMenu.items), "cms-link") : ""}
+      </ul>
+    </div>
+  </nav>
+
+  <main class="post-wrapper">
+    ${categoriesHtml}
+    <h1 class="post-title">${post.title}</h1>
+    ${publishedDate ? `<div class="post-meta"><span>${publishedDate}</span></div>` : ""}
+    ${featuredImageHtml}
+    <div class="post-content">${post.content}</div>
+    ${tagsHtml}
+  </main>
+
+  <footer class="cms-footer">
+    <div class="cms-footer-inner">
+      <ul class="cms-footer-menu">
+        ${footerMenu ? mapItems(buildTree(footerMenu.items), "cms-footer-link") : ""}
+      </ul>
+      <p>&copy; ${new Date().getFullYear()} My Website. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function handleNav(e, url) {
+      e.preventDefault();
+      window.parent.postMessage({ type: "NAVIGATE", url }, "*");
+    }
+  </script>
+</body>
+</html>`;
+
+  return (
+    <iframe
+      srcDoc={fullHtml}
+      title={post.title}
+      style={{ width: "100%", height: "100vh", border: "none", display: "block" }}
+    />
+  );
+}

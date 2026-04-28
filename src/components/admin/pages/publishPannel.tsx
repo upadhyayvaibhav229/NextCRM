@@ -50,7 +50,7 @@ export function PublishPanel({
               {isSaving ? "Saving..." : "Save Draft"}
             </button>
             <button
-              onClick={() => window.open(`/preview/${page.slug}`, "_blank")}
+              onClick={() => window.open(`/${page.slug}`, "_blank")}
               className="flex items-center gap-1 px-3 py-1.5 text-sm text-primary hover:text-primary/80 transition-colors"
             >
               <Eye size={14} />
