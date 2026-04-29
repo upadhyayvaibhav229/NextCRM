@@ -73,6 +73,23 @@
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
 }
+/* Custom scrollbar that works with both themes */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--sidebar-border, rgba(0,0,0,0.1));
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-primary, rgba(0,0,0,0.2));
+}
 
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback';

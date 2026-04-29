@@ -18,6 +18,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { ThemeToggle } from "@/src/components/theme-toggle";
+import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
 interface NavItem {
@@ -106,8 +107,13 @@ export function Sidebar({
   collapsed,
   setCollapsed,
 }: SidebarProps) {
+  const { data: session } = useSession();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const userEmail = session?.user?.email || "Logged in user";
+  const userName = userEmail.includes("@")
+    ? userEmail.split("@")[0]
+    : userEmail;
 
   const toggleMenu = (menuId: string) => {
     setExpandedMenus(prev =>
@@ -115,6 +121,10 @@ export function Sidebar({
         ? prev.filter(id => id !== menuId)
         : [...prev, menuId]
     );
+  };
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/login" });
   };
 
   const renderNavItem = (item: NavItem, depth = 0) => {
@@ -129,7 +139,7 @@ export function Sidebar({
         <button
           onClick={() => {
             if (hasChildren && !collapsed) {
-              setActiveSection(item.id);
+              // setActiveSection(item.id);
               toggleMenu(item.id);
             } else {
               setActiveSection(item.id);
@@ -141,7 +151,7 @@ export function Sidebar({
             depth > 0 ? "pl-10" : ""
           } ${
             isActive
-              ? "bg-gradient-to-r from-sidebar-primary/20 to-sidebar-primary/5 text-sidebar-primary shadow-sm"
+              ? "bg-linear-to-r from-sidebar-primary/20 to-sidebar-primary/5 text-sidebar-primary shadow-sm"
               : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/30"
           }`}
         >
@@ -267,26 +277,31 @@ export function Sidebar({
               {!collapsed && (
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-sidebar-foreground truncate">
-                    Alex Johnson
+                    {userName}
                   </p>
                   <p className="text-xs text-sidebar-foreground/50 truncate">
-                    admin@cms.dev
+                    {userEmail}
                   </p>
                 </div>
               )}
 
-              {!collapsed && (
-                <button className="p-1.5 rounded-lg text-sidebar-foreground/40 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200">
-                  <LogOut size={16} />
-                </button>
-              )}
+              <button
+                onClick={handleLogout}
+                className={`rounded-lg text-sidebar-foreground/40 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200 ${
+                  collapsed ? "absolute -right-1 -top-1 p-1 bg-sidebar" : "p-1.5"
+                }`}
+                aria-label="Log out"
+                title="Log out"
+              >
+                <LogOut size={16} />
+              </button>
             </div>
 
             {/* Tooltip for collapsed state */}
             {collapsed && (
               <div className="absolute left-full ml-3 bottom-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
                 <div className="px-2 py-1 bg-sidebar-foreground text-sidebar text-xs font-medium rounded-md whitespace-nowrap shadow-lg">
-                  Alex Johnson
+                  {userName}
                   <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-sidebar-foreground" />
                 </div>
               </div>

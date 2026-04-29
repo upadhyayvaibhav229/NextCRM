@@ -777,7 +777,7 @@ ${itemsCode}
               )}
 
               {/* Code Preview */}
-              {selectedMenu.location !== "none" &&
+              {/* {selectedMenu.location !== "none" &&
                 selectedMenu.items.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
@@ -792,7 +792,7 @@ ${itemsCode}
                       </code>
                     </pre>
                   </div>
-                )}
+                )} */}
             </div>
           </div>
         ) : (

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Syne, Space_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/src/components/theme-provider'
+import { SessionProvider } from '@/src/components/auth/SessionProvider'
 import './globals.css'
 
 const syne = Syne({ 
@@ -58,7 +59,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SessionProvider>{children}</SessionProvider>
           {process.env.NODE_ENV === 'production' && <Analytics />}
         </ThemeProvider>
       </body>
