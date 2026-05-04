@@ -102,7 +102,7 @@ function ImageUpload({ label, value, onChange, onUpload }: ImageUploadProps) {
           }}
           className="flex-1 text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
         />
-        
+
         {isUploading && (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -132,6 +132,11 @@ interface SiteSettings {
   defaultMetaTitle: string | null;
   defaultMetaDescription: string | null;
   postsPerPage: number;
+
+  homepageType: "posts" | "page";
+  homepagePageId: number | null;
+  postsPageId: number | null;
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -160,28 +165,41 @@ export function SettingsPage({
     ...initialSettings,
   });
 
-
-
   const [hasChanges, setHasChanges] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "success" | "error"
+  >("idle");
+  const [pages, setPages] = useState([]);
 
   useEffect(() => {
-  if (initialSettings) {
-    setSettings({
-      siteName: "",
-      siteTagline: "",
-      logo: "",
-      favicon: "",
-      defaultMetaTitle: "",
-      defaultMetaDescription: "",
-      postsPerPage: 10,
-      ...initialSettings,
-    });
+    const fetchPages = async () => {
+      const response = await fetch("/api/pages");
+      const data = await response.json();
+      setPages(data.data);
+    };
+    fetchPages();
+  }, []);
 
-    setHasChanges(false);
-  }
-}, [initialSettings]);
-  const updateField = <K extends keyof SiteSettings>(field: K, value: SiteSettings[K]) => {
+  useEffect(() => {
+    if (initialSettings) {
+      setSettings({
+        siteName: "",
+        siteTagline: "",
+        logo: "",
+        favicon: "",
+        defaultMetaTitle: "",
+        defaultMetaDescription: "",
+        postsPerPage: 10,
+        ...initialSettings,
+      });
+
+      setHasChanges(false);
+    }
+  }, [initialSettings]);
+  const updateField = <K extends keyof SiteSettings>(
+    field: K,
+    value: SiteSettings[K],
+  ) => {
     setSettings((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
   };
@@ -211,7 +229,9 @@ export function SettingsPage({
             <div className="p-2 bg-primary/10 rounded-lg">
               <SettingsIcon className="h-6 w-6 text-primary" />
             </div>
-            <h1 className="text-3xl font-bold text-foreground">Site Settings</h1>
+            <h1 className="text-3xl font-bold text-foreground">
+              Site Settings
+            </h1>
           </div>
           <p className="text-muted-foreground">
             Configure your site's global settings, SEO defaults, and appearance
@@ -224,7 +244,9 @@ export function SettingsPage({
             <div className="px-6 py-4 border-b border-border bg-muted/20">
               <div className="flex items-center gap-3">
                 <Globe className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">General Settings</h2>
+                <h2 className="text-lg font-semibold text-foreground">
+                  General Settings
+                </h2>
               </div>
             </div>
             <div className="p-6 space-y-5">
@@ -279,14 +301,95 @@ export function SettingsPage({
                     type="number"
                     name="postsPerPage"
                     value={settings.postsPerPage}
-                    onChange={(e) => updateField("postsPerPage", parseInt(e.target.value) || 10)}
+                    onChange={(e) =>
+                      updateField(
+                        "postsPerPage",
+                        parseInt(e.target.value) || 10,
+                      )
+                    }
                     min={1}
                     max={100}
                     className="w-32 border border-border rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
-                  <span className="text-sm text-muted-foreground">posts per page</span>
+                  <span className="text-sm text-muted-foreground">
+                    posts per page
+                  </span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Reading Settings */}
+          <div className="border border-border rounded-lg bg-card overflow-hidden">
+            <div className="px-6 py-4 border-b border-border bg-muted/20">
+              <h2 className="text-lg font-semibold">Reading Settings</h2>
+            </div>
+
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Homepage Displays
+                </label>
+
+                <select
+                  value={settings.homepageType || "posts"}
+                  onChange={(e) =>
+                    updateField(
+                      "homepageType",
+                      e.target.value as "posts" | "page",
+                    )
+                  }
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                >
+                  <option value="posts">Your latest posts</option>
+                  <option value="page">A static page</option>
+                </select>
+              </div>
+
+              {settings.homepageType === "page" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Homepage
+                    </label>
+                    <select
+                      value={settings.homepagePageId || ""}
+                      onChange={(e) =>
+                        updateField("homepagePageId", Number(e.target.value))
+                      }
+                      className="w-full border rounded-md px-3 py-2 text-sm"
+                    >
+                      {
+                        /* map pages here */
+                        pages.map((page) => (
+                          <option key={page.id} value={page.id}>
+                            {page.title}
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Posts Page
+                    </label>
+                    <select
+                      value={settings.postsPageId || ""}
+                      onChange={(e) =>
+                        updateField("postsPageId", Number(e.target.value))
+                      }
+                      className="w-full border rounded-md px-3 py-2 text-sm"
+                    >
+                      {pages.map((page) => (
+                        <option key={page.id} value={page.id}>
+                          {page.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -304,20 +407,23 @@ export function SettingsPage({
                 Cancel
               </button>
             )}
-            
+
             <button
               type="submit"
               disabled={!hasChanges || saveStatus === "saving"}
               className="inline-flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saveStatus === "saving" && <Loader2 className="h-4 w-4 animate-spin" />}
+              {saveStatus === "saving" && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
               {saveStatus === "success" && <CheckCircle2 className="h-4 w-4" />}
               {saveStatus === "error" && <AlertCircle className="h-4 w-4" />}
               {saveStatus === "idle" && <Save className="h-4 w-4" />}
               {saveStatus === "saving" && "Saving..."}
               {saveStatus === "success" && "Saved!"}
               {saveStatus === "error" && "Error!"}
-              {saveStatus === "idle" && (hasChanges ? "Save Changes" : "No Changes")}
+              {saveStatus === "idle" &&
+                (hasChanges ? "Save Changes" : "No Changes")}
             </button>
           </div>
         </form>

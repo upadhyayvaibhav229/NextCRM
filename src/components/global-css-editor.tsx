@@ -67,14 +67,14 @@ export function GlobalCssEditor() {
           )}
         </div>
 
-        <div className="max-w-2xl bg-card border border-border p-6">
+        {/* <div className="max-w-2xl bg-card border border-border p-6">
           <h2 className="font-medium text-foreground mb-3">How it works</h2>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>Stored in `localStorage` as `cms_global_css`.</p>
             <p>Injected into preview pages in addition to per-page CSS.</p>
             <p>Use `/admin/setting/global-css` or the sidebar section.</p>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

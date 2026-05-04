@@ -3,7 +3,7 @@ import { ApiError } from "../../lib/utils/ApiError.js";
 import { ApiResponse } from "../../lib/utils/ApiResponse.js";
 import { asyncHandler } from "../../lib/utils/asyncHandler.js";
 
-const VALID_LOCATIONS = ['header', 'footer']
+const VALID_LOCATIONS = ['header', 'footer', 'footer-1', 'footer-2', 'footer-3']
 
 // GET /api/menus
 export const GET = asyncHandler(async () => {

@@ -1,20 +1,27 @@
-// Add this to your Cms.tsx alongside the Page type
-
 export interface Post {
   id: any;
   title: string;
   slug: string;
   content: string;
-  status: string;           // "DRAFT" | "PUBLISHED"
+  status: string;
   excerpt?: string;
-  format?: string;          // "standard" | "aside" | "audio" etc
+  format?: string;
   featuredImage?: string | null;
-  seoTitle?: string;
-  seoDescription?: string;
-  categoryIds?: string[];   // used by editor
-  tagIds?: string[];        // used by editor
-  categories?: { id: string; name: string }[];  // returned by API
-  tags?: { id: string; name: string }[];        // returned by API
+
+  seoData?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    ogTitle?: string;
+    ogDescription?: string;
+    canonicalUrl?: string;
+  };
+
+  categoryIds?: string[];
+  tagIds?: string[];
+
+  categories?: { id: string; name: string }[];
+  tags?: { id: string; name: string }[];
+
   publishedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;

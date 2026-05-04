@@ -1,17 +1,13 @@
 import { prisma } from "../prisma.js";
 
-// Singleton Settings Record ID
 const SETTINGS_ID = 1;
 
-// ──────────────────────────────────────────────
 // GET SETTINGS
-// ──────────────────────────────────────────────
 export async function getSettings() {
   let settings = await prisma.siteSettings.findUnique({
     where: { id: SETTINGS_ID },
   });
 
-  // Auto-create singleton record if missing
   if (!settings) {
     settings = await prisma.siteSettings.create({
       data: { id: SETTINGS_ID },
@@ -21,11 +17,22 @@ export async function getSettings() {
   return settings;
 }
 
-// ──────────────────────────────────────────────
 // UPDATE SETTINGS
-// ──────────────────────────────────────────────
 export async function updateSettings(input) {
-  await getSettings(); // ensure record exists
+  await getSettings();
+
+  // Validation
+  if (input.homepageType === "page" && !input.homepagePageId) {
+    throw new Error("Homepage page is required when homepage type is page");
+  }
+
+  if (
+    input.homepagePageId &&
+    input.postsPageId &&
+    Number(input.homepagePageId) === Number(input.postsPageId)
+  ) {
+    throw new Error("Homepage and Posts Page cannot be the same");
+  }
 
   return prisma.siteSettings.update({
     where: { id: SETTINGS_ID },
@@ -36,9 +43,21 @@ export async function updateSettings(input) {
       favicon: input.favicon,
       defaultMetaTitle: input.defaultMetaTitle,
       defaultMetaDescription: input.defaultMetaDescription,
+
       postsPerPage:
         input.postsPerPage !== undefined
           ? Number(input.postsPerPage)
+          : undefined,
+
+      homepageType: input.homepageType,
+      homepagePageId:
+        input.homepagePageId !== undefined
+          ? Number(input.homepagePageId)
+          : undefined,
+
+      postsPageId:
+        input.postsPageId !== undefined
+          ? Number(input.postsPageId)
           : undefined,
     },
   });

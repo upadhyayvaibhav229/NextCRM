@@ -109,9 +109,21 @@ model SiteSettings {
 
   postsPerPage Int @default(10)
 
+  homepageType String @default("posts") // posts | page
+  homepagePageId Int?
+  postsPageId Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+
+model FooterSettings {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value Json
+}
+
 
 model User {
   id       Int    @id @default(autoincrement())

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown, Tag, FolderOpen, Eye, Save, Loader2, X } from "lucide-react";
-import { Post } from "../Cms";
+import { Post } from "./Post.type";
+
 
 interface Category { id: string; name: string; }
 interface Tag { id: string; name: string; }

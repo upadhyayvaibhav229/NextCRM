@@ -23,9 +23,13 @@ const FORMAT_OPTIONS = [
 ];
 
 function CollapsibleSection({
-  title, children, defaultOpen = true,
+  title,
+  children,
+  defaultOpen = true,
 }: {
-  title: string; children: React.ReactNode; defaultOpen?: boolean;
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -34,8 +38,14 @@ function CollapsibleSection({
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors"
       >
-        <span className="text-xs font-semibold text-foreground uppercase tracking-wide">{title}</span>
-        {open ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
+        <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
+          {title}
+        </span>
+        {open ? (
+          <ChevronUp size={14} className="text-muted-foreground" />
+        ) : (
+          <ChevronDown size={14} className="text-muted-foreground" />
+        )}
       </button>
       {open && <div className="border-t border-border">{children}</div>}
     </div>
@@ -52,7 +62,9 @@ export function PostEditorMeta({ post, onChange }: PostEditorMetaProps) {
         <div className="p-4">
           <textarea
             value={(post as any).excerpt ?? ""}
-            onChange={(e) => onChange({ ...post, excerpt: e.target.value } as any)}
+            onChange={(e) =>
+              onChange({ ...post, excerpt: e.target.value } as any)
+            }
             placeholder="Write a short summary of this post..."
             rows={3}
             className="w-full text-sm bg-background border border-border rounded-md px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring resize-none"
@@ -87,23 +99,38 @@ export function PostEditorMeta({ post, onChange }: PostEditorMetaProps) {
       <CollapsibleSection title="SEO" defaultOpen={false}>
         <div className="p-4 flex flex-col gap-3">
           <div>
-            <label className="text-xs font-medium text-foreground mb-1 block">SEO Title</label>
+            <label className="text-xs font-medium text-foreground mb-1 block">
+              SEO Title
+            </label>
             <input
               type="text"
-              value={(post as any).seoTitle ?? ""}
-              onChange={(e) => onChange({ ...post, seoTitle: e.target.value } as any)}
-              placeholder="Leave blank to use post title"
-              className="w-full text-sm bg-background border border-border rounded-md px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
+              value={post.seoData?.metaTitle ?? ""}
+              onChange={(e) =>
+                onChange({
+                  ...post,
+                  seoData: {
+                    ...post.seoData,
+                    metaTitle: e.target.value,
+                  },
+                })
+              }
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground mb-1 block">SEO Description</label>
+            <label className="text-xs font-medium text-foreground mb-1 block">
+              SEO Description
+            </label>
             <textarea
-              value={(post as any).seoDescription ?? ""}
-              onChange={(e) => onChange({ ...post, seoDescription: e.target.value } as any)}
-              placeholder="Leave blank to use excerpt"
-              rows={2}
-              className="w-full text-sm bg-background border border-border rounded-md px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring resize-none"
+              value={post.seoData?.metaDescription ?? ""}
+              onChange={(e) =>
+                onChange({
+                  ...post,
+                  seoData: {
+                    ...post.seoData,
+                    metaDescription: e.target.value,
+                  },
+                })
+              }
             />
           </div>
         </div>

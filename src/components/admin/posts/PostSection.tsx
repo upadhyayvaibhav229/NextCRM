@@ -55,8 +55,12 @@ export function PostsSection() {
       categoryIds: [],
       tagIds: [],
       featuredImage: null,
-      seoTitle: "",
-      seoDescription: "",
+
+      seoData: {
+        metaTitle: "",
+        metaDescription: "",
+      },
+
       publishedAt: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -84,43 +88,42 @@ export function PostsSection() {
     }
   };
 
-const handleSave = async () => {
-  if (!editingPost) return;
-  try {
-    setLoading(true);
+  const handleSave = async () => {
+    if (!editingPost) return;
+    try {
+      setLoading(true);
 
-    // Strip temp id and frontend-only fields before sending
-    const { categoryIds, tagIds, categories, tags, ...rest } = editingPost as any;
-    const payload = {
-      ...rest,
-      categoryIds: categoryIds ?? [],
-      tagIds: tagIds ?? [],
-    };
+      // Strip temp id and frontend-only fields before sending
+      const { categoryIds, tagIds, categories, tags, ...rest } =
+        editingPost as any;
+      const payload = {
+        ...rest,
+        categoryIds: categoryIds ?? [],
+        tagIds: tagIds ?? [],
+      };
 
-    let saved;
-    if (isNewPost) {
-      // Remove the temp id — backend will generate real one
-      const { id, ...createPayload } = payload;
-      const res = await postService.create(createPayload);
-      saved = res.data?.data ?? res.data ?? res;
-      setPosts((prev) => [saved, ...prev]);
-    } else {
-      const res = await postService.update(editingPost.id, payload);
-      saved = res.data?.data ?? res.data ?? res;
-      setPosts((prev) =>
-        prev.map((p) => (p.id === saved.id ? saved : p))
-      );
+      let saved;
+      if (isNewPost) {
+        // Remove the temp id — backend will generate real one
+        const { id, ...createPayload } = payload;
+        const res = await postService.create(createPayload);
+        saved = res.data?.data ?? res.data ?? res;
+        setPosts((prev) => [saved, ...prev]);
+      } else {
+        const res = await postService.update(editingPost.id, payload);
+        saved = res.data?.data ?? res.data ?? res;
+        setPosts((prev) => prev.map((p) => (p.id === saved.id ? saved : p)));
+      }
+
+      setEditingPost(null);
+      setIsNewPost(false);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    setEditingPost(null);
-    setIsNewPost(false);
-    setError(null);
-  } catch (err: any) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   const handleDelete = async (id: string) => {
     try {
       setLoading(true);
@@ -288,9 +291,7 @@ const handleSave = async () => {
             <button
               onClick={() => handleTogglePublish(row)}
               className="p-2 text-muted-foreground hover:text-primary transition-colors"
-              title={
-                row.status === "PUBLISHED" ? "Unpublish" : "Publish"
-              }
+              title={row.status === "PUBLISHED" ? "Unpublish" : "Publish"}
             >
               {row.status === "PUBLISHED" ? (
                 <EyeOff size={15} />

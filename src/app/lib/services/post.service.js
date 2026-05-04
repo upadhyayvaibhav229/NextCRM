@@ -132,7 +132,7 @@ export async function createPost(input) {
   await ensureUniqueSlug(prisma.post, slug);
 
   const { categoryIds = [], tagIds = [], ...rest } = input;
-
+  console.log("POST INPUT:", input);
   return prisma.post.create({
     data: {
       ...rest,

@@ -2,7 +2,7 @@ import { prisma } from "../prisma.js";
 
 // ─── Constants ────────────────────────────────────────────
 
-export const VALID_LOCATIONS = ["header", "footer"];
+export const VALID_LOCATIONS = ["header", "footer", "footer-1", "footer-2", "footer-3"]
 export const VALID_ITEM_TYPES = ["page", "custom"];
 
 // ─── Validators ───────────────────────────────────────────
@@ -13,6 +13,7 @@ function validateLocation(location) {
     throw new Error("Menu location is required");
   }
   if (!VALID_LOCATIONS.includes(location)) {
+    
     throw new Error(`Location must be one of: ${VALID_LOCATIONS.join(", ")}`);
   }
 }

@@ -46,7 +46,6 @@ interface MenuItem {
   parentId?: number | null;
   order?: number;
   children?: MenuItem[];
-  
 }
 
 // ── Tree helpers ───────────────────────────────────────────────────────────────
@@ -228,9 +227,9 @@ export function MenusSection({ pages }: MenusSectionProps) {
   // ── Create menu form state ─────────────────────────────
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newMenuName, setNewMenuName] = useState("");
-  const [newMenuLocation, setNewMenuLocation] = useState<"header" | "footer">(
-    "header",
-  );
+  const [newMenuLocation, setNewMenuLocation] = useState<
+    "header" | "footer" | "footer-1" | "footer-2" | "footer-3"
+  >("header");
 
   // ── DnD state ─────────────────────────────────────────
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -515,19 +514,17 @@ ${itemsCode}
                 autoFocus
               />
               <div className="flex gap-1 mb-3">
-                {(["header", "footer"] as const).map((loc) => (
-                  <button
-                    key={loc}
-                    onClick={() => setNewMenuLocation(loc)}
-                    className={`flex-1 py-1.5 text-xs font-medium transition-all ${
-                      newMenuLocation === loc
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {loc === "header" ? "Header" : "Footer"}
-                  </button>
-                ))}
+                <select
+                  value={newMenuLocation}
+                  onChange={(e) => setNewMenuLocation(e.target.value as any)}
+                  className="w-full p-2 mb-3 text-sm bg-input text-foreground border border-border outline-none focus:border-primary"
+                >
+                  <option value="header">Header</option>
+                  <option value="footer">Footer (legacy)</option>
+                  <option value="footer-1">Footer Column 1</option>
+                  <option value="footer-2">Footer Column 2</option>
+                  <option value="footer-3">Footer Column 3</option>
+                </select>
               </div>
               <div className="flex gap-2">
                 <button

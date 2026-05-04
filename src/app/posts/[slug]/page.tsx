@@ -28,6 +28,38 @@ export default function PublicPostPage() {
 
   const { menus, loading: menusLoading } = useMenusPreview();
 
+    const [footerMenus, setFooterMenus] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any>(null);
+
+  
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("/api/setting");
+        const data = await res.json();
+
+        if (data.success) {
+          setSettings(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+      }
+    };
+
+    fetchSettings();
+  }, []);
+  useEffect(() => {
+    const fetchMenus = async () => {
+      const res = await fetch("/api/menus");
+      const data = await res.json();
+      const cols = (data.data ?? []).filter((m: any) =>
+        ["footer-1", "footer-2", "footer-3"].includes(m.location),
+      );
+      setFooterMenus(cols);
+    };
+    fetchMenus();
+  }, []);
+
   // Handle navigation from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -253,11 +285,21 @@ ${seo.twitterImage || seo.ogImage || post.featuredImage ? `<meta name="twitter:i
     .post-tag:hover{background:#e5e7eb;color:#111827}
 
     /* ── Footer ── */
-    .cms-footer{margin-top:auto;background:#111827;color:#9ca3af}
-    .cms-footer-inner{padding:2rem 0;text-align:center}
-    .cms-footer-menu{display:flex;gap:1.5rem;list-style:none;margin:0 auto 1rem;padding:0;justify-content:center}
-    .cms-footer-link{color:#9ca3af;text-decoration:none;font-size:.875rem}
-    .cms-footer-link:hover{color:#fff}
+ .cms-footer{margin-top:auto;background:#111827;color:#9ca3af}
+.cms-footer-inner{width:min(1200px,calc(100% - 2rem));margin:0 auto;padding:3rem 0 1.5rem}
+.footer-top{display:grid;grid-template-columns:1fr 2fr;gap:3rem;margin-bottom:2rem}
+.footer-brand-name{color:#fff;text-decoration:none;font-size:1.125rem;font-weight:700}
+.footer-brand-desc{font-size:.875rem;color:#6b7280;margin:.5rem 0 0}
+.footer-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem}
+.footer-col-title{color:black;font-size:.875rem;font-weight:600;margin:0 0 1rem;text-transform:uppercase;letter-spacing:.05em}
+.footer-col-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
+.footer-col-link{color:#6b7280;text-decoration:none;font-size:.875rem;transition:color .15s}
+.footer-col-link:hover{color:#fff}
+.footer-social{display:flex;gap:.75rem;margin-top:1rem}
+.footer-social-link{color:#6b7280;transition:color .15s}
+.footer-social-link:hover{color:#fff}
+.footer-bottom{border-top:1px solid #1f2937;padding-top:1.5rem;text-align:center;font-size:.8rem;color:#4b5563}
+
   </style>
 </head>
 <body>
@@ -279,14 +321,41 @@ ${seo.twitterImage || seo.ogImage || post.featuredImage ? `<meta name="twitter:i
     ${tagsHtml}
   </main>
 
-  <footer class="cms-footer">
-    <div class="cms-footer-inner">
-      <ul class="cms-footer-menu">
-        ${footerMenu ? mapItems(buildTree(footerMenu.items), "cms-footer-link") : ""}
-      </ul>
-      <p>&copy; ${new Date().getFullYear()} My Website. All rights reserved.</p>
+<footer class="cms-footer">
+  <div class="cms-footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" class="footer-brand-name" onclick="handleNav(event,'/')">${settings.siteName}</a>
+        ${settings.footerDescription ? `<p class="footer-brand-desc">${settings.footerDescription}</p>` : ""}
+      </div>
+      <div class="footer-cols">
+        ${footerMenus
+          .sort((a, b) => a.location.localeCompare(b.location))
+          .map(
+            (menu) => `
+            <div class="footer-col">
+              <h4 class="footer-col-title">${menu.name}</h4>
+              <ul class="footer-col-links">
+                ${menu.items
+                  .map((item: any) => {
+                    const href =
+                      item.type === "page" && item.slug
+                        ? `/${item.slug}`
+                        : item.url || "#";
+                    return `<li><a href="${href}" class="footer-col-link" onclick="handleNav(event,'${href}')">${item.label}</a></li>`;
+                  })
+                  .join("")}
+              </ul>
+            </div>`,
+          )
+          .join("")}
+      </div>
     </div>
-  </footer>
+    <div class="footer-bottom">
+      <p>${settings.footerText || `© ${new Date().getFullYear()} ${settings.siteName}. All rights reserved.`}</p>
+    </div>
+  </div>
+</footer>
 
   <script>
     function handleNav(e, url) {
