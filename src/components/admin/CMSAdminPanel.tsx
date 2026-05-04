@@ -14,6 +14,7 @@ import {
 } from "@/src/components/admin/settings-section";
 import { Sidebar } from "@/src/components/admin/AppSidebar";
 import { TagTable } from "@/src/components/admin/tags/Tags";
+import AdminSettings from "./setting/Page";
 
 export function CMSAdminPanel() {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -56,7 +57,7 @@ export function CMSAdminPanel() {
         {activeSection === "menus" && (
           <MenusSection menus={menus} setMenus={setMenus} pages={pages} />
         )}
-        {activeSection === "settings" && <SettingsSection />}
+        {activeSection === "settings" && <AdminSettings />}
         {activeSection === "global-css" && <GlobalCssSection />}
       </main>
     </div>

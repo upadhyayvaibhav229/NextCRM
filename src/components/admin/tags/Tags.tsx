@@ -189,7 +189,7 @@ export function TagTable() {
     },
     {
       key: 'actions',
-      header: '',
+      header: 'Actions',
       cell: (row) => (
         <div className="flex items-center justify-end gap-1">
           <Button
@@ -388,7 +388,7 @@ export function TagTable() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               Delete Tag
             </AlertDialogAction>

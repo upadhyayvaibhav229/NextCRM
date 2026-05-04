@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Post } from "../Cms";
+// import { Post } from "../Cms";
 import { PostEditorHeader } from "./PostEditorHeader";
 import { PostEditorActions } from "./PostEditorActions";
 import { PostEditorContent } from "./PostEditorContent";
-import { PostEditorMeta } from "./PostEditorMeta";
+import { PostEditorSidebar } from "./Posteditorsidebar";
+import { Post } from "./Post.type";
+// import { PostEditorSidebar } from "./PostEditorSidebar";
 
 interface PostEditorProps {
   post: Post;
@@ -28,8 +30,8 @@ export function PostEditor({ post, onChange, onSave, onCancel }: PostEditorProps
   };
 
   return (
-    <div className="flex flex-col bg-background">
-      {/* Top header — title + permalink */}
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Title + permalink */}
       <PostEditorHeader post={post} onChange={onChange} onCancel={onCancel} />
 
       {/* Sticky actions bar */}
@@ -40,10 +42,17 @@ export function PostEditor({ post, onChange, onSave, onCancel }: PostEditorProps
         isSaving={isSaving}
       />
 
-      {/* Main content area */}
-      <div className="flex-1 w-full max-w-215 mx-auto px-6 py-6 flex flex-col gap-4">
-        <PostEditorContent post={post} onChange={onChange} />
-        <PostEditorMeta post={post} onChange={onChange} />
+      {/* Two column layout */}
+      <div className="flex gap-6 px-6 py-6 max-w-[1500px] w-full mx-auto">
+        {/* Left — editor */}
+        <div className="flex-1 min-w-0">
+          <PostEditorContent post={post} onChange={onChange} />
+        </div>
+
+        {/* Right — sidebar (Excerpt, Format, SEO) */}
+        <div className="w-[320px] shrink-0">
+          <PostEditorSidebar post={post} onChange={onChange} />
+        </div>
       </div>
     </div>
   );

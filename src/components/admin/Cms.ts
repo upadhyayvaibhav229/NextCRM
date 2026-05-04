@@ -24,3 +24,16 @@ export interface MenuData {
   location: "primary" | "footer" | "none"
   items: MenuItem[]
 }
+
+export interface SiteSettings {
+  id: number;
+  siteName: string | null;
+  siteTagline: string | null;
+  logo: string | null;
+  favicon: string | null;
+  defaultMetaTitle: string | null;
+  defaultMetaDescription: string | null;
+  postsPerPage: number;
+  createdAt: Date;
+  updatedAt: Date;
+}

@@ -13,6 +13,7 @@ interface Page {
   html: string;
   css: string;
   js: string;
+  seoData?: any; // ← add this
 }
 
 export default function PreviewPage() {
@@ -23,12 +24,30 @@ export default function PreviewPage() {
   const [globalCss, setGlobalCss] = useState("");
   const [notFound, setNotFound] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [settings, setSettings] = useState<any>(null);
 
   // Use the menus hook - no hardcoded menus!
   const { menus, loading: menusLoading } = useMenusPreview();
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch("/api/setting");
+        const data = await res.json();
+
+        if (data.success) {
+          setSettings(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+      }
+    };
+
+    fetchSettings();
+  }, []);
   // Handle navigation messages from iframe
   useEffect(() => {
+
     const handleMessage = (event: MessageEvent) => {
       if (
         event.data?.type === "NAVIGATE" &&
@@ -84,7 +103,7 @@ export default function PreviewPage() {
   );
 
   // Show loading state
-  if (pageLoading || menusLoading) {
+  if (pageLoading || menusLoading || !settings) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white text-gray-600">
         Loading...
@@ -138,9 +157,7 @@ export default function PreviewPage() {
     return items
       .map((item) => {
         const href =
-          item.type === "page" && item.slug
-            ? `/${item.slug}`
-            : item.url || "#";
+          item.type === "page" && item.slug ? `/${item.slug}` : item.url || "#";
 
         const childrenHtml =
           item.children?.length > 0
@@ -158,15 +175,40 @@ export default function PreviewPage() {
       })
       .join("");
   };
-  
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const seo = (page as any).seoData || {};
   // Generate full HTML for iframe
   const fullHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${page.title} - My Website</title>
-  <style>
+  <title>${seo.metaTitle || page.title}</title>
+  <meta name="description" content="${seo.metaDescription || ""}">
+  ${settings.favicon ? `<link rel="icon" href="${settings.favicon}" />` : ""}
+  <!-- Robots -->
+  <meta name="robots" content="${
+    (seo.robotsIndex !== false ? "index" : "noindex") +
+    "," +
+    (seo.robotsFollow !== false ? "follow" : "nofollow")
+  }">
+
+  <!-- Canonical -->
+  ${seo.canonicalUrl ? `<link rel="canonical" href="${seo.canonicalUrl}">` : `<link rel="canonical" href="${siteUrl}/${page.slug}">`}
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="${siteUrl}/${page.slug}">
+    <meta property="og:title" content="${seo.ogTitle || seo.metaTitle || page.title}">
+    <meta property="og:description" content="${seo.ogDescription || seo.metaDescription || ""}">
+    ${seo.ogImage ? `<meta property="og:image" content="${seo.ogImage}">` : ""}
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${seo.twitterTitle || seo.ogTitle || page.title}">
+    <meta name="twitter:description" content="${seo.twitterDescription || seo.metaDescription || ""}">
+    ${seo.twitterImage || seo.ogImage ? `<meta name="twitter:image" content="${seo.twitterImage || seo.ogImage}">` : ""}  
+    <style>
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; min-height: 100vh; font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; }
     body { display: flex; flex-direction: column; background: #ffffff; color: #111827; }
@@ -344,7 +386,13 @@ export default function PreviewPage() {
 <body>
   <nav class="cms-navbar">
     <div class="cms-navbar-inner">
-      <a href="/home" class="cms-brand" onclick="handleNav(event, '/home')">My Website</a>
+<a href="/home" class="cms-brand" onclick="handleNav(event, '/home')">
+  ${
+    settings.logo
+      ? `<img src="${settings.logo}" alt="${settings.siteName}" style="height:40px;" />`
+      : settings.siteName
+  }
+</a>
 <ul class="cms-menu">
   ${headerMenu ? mapItems(buildTree(headerMenu.items), "cms-link") : ""}
 </ul>   
@@ -358,7 +406,12 @@ export default function PreviewPage() {
 <ul class="cms-footer-menu">
   ${footerMenu ? mapItems(buildTree(footerMenu.items), "cms-footer-link") : ""}
 </ul>     
- <p>&copy; ${new Date().getFullYear()} My Website. All rights reserved.</p>
+<p>
+  ${
+    settings.footerText ||
+    `&copy; ${new Date().getFullYear()} ${settings.siteName}. All rights reserved.`
+  }
+</p>
     </div>
   </footer>
   <script>

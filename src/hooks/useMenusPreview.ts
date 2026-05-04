@@ -1,9 +1,26 @@
 import { useState, useEffect } from "react";
 
+export interface PreviewMenuItem {
+  id: string;
+  label: string;
+  type: string;
+  url?: string | null;
+  slug?: string | null;
+  parentId?: string | null;
+  children?: PreviewMenuItem[];
+}
+
+export interface PreviewMenu {
+  id: string;
+  name: string;
+  location: string;
+  items: PreviewMenuItem[];
+}
+
 export function useMenusPreview() {
-  const [menus, setMenus] = useState([]);
+  const [menus, setMenus] = useState<PreviewMenu[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMenus = async () => {
@@ -19,7 +36,7 @@ export function useMenusPreview() {
         }
       } catch (err) {
         console.error("Failed to fetch menus:", err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "Failed to fetch menus");
         setMenus([]);
       } finally {
         setLoading(false);

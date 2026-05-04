@@ -153,7 +153,7 @@ export function PageEditor({
             <SeoPanel
               pageTitle={page.title}
               pageSlug={page.slug}
-              pageContent={page.content || ""}
+              pageContent={page.html || ""}
               siteUrl={
                 process.env.NEXT_PUBLIC_SITE_URL || "https://yoursite.com"
               }

@@ -79,6 +79,7 @@ export async function createPage(input) {
       html: input.html,
       css: input.css ?? "",
       js: input.js ?? "",
+      seoData: input.seoData ?? null,
       status: input.status ?? "draft",
     },
   });

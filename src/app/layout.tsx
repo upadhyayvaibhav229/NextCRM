@@ -1,15 +1,9 @@
 import type { Metadata } from 'next'
-import { Syne, Space_Mono } from 'next/font/google'
+import { Space_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/src/components/theme-provider'
 import { SessionProvider } from '@/src/components/auth/SessionProvider'
 import './globals.css'
-
-const syne = Syne({ 
-  subsets: ["latin"],
-  variable: '--font-syne',
-  display: 'swap',
-});
 
 const spaceMono = Space_Mono({ 
   subsets: ["latin"],
@@ -18,29 +12,37 @@ const spaceMono = Space_Mono({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'CMS Admin Panel',
-  description: 'Modern CMS Admin Panel - Linear meets Vercel',
-  generator: 'v0.app',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
-}
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/setting`,
+      { cache: "no-store" }
+    );
 
+    const json = await res.json();
+    const settings = json.data;
+
+    const faviconUrl = settings?.favicon
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}${settings.favicon}?v=${settings.updatedAt}`
+      : undefined;
+
+    return {
+      title: settings?.siteName || "My Website",
+      description: settings?.siteTagline || "Modern CMS Website",
+      icons: faviconUrl
+        ? {
+            icon: faviconUrl,
+            apple: faviconUrl,
+          }
+        : undefined,
+    };
+  } catch {
+    return {
+      title: "My Website",
+      description: "Modern CMS Website",
+    };
+  }
+}
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -50,7 +52,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${syne.variable} ${spaceMono.variable} bg-background`}
+      className={`${spaceMono.variable} bg-background`}
     >
       <body className="font-sans antialiased">
         <ThemeProvider

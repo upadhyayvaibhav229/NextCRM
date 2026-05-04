@@ -14,18 +14,15 @@ function generateSlug(title) {
 }
 
 async function ensureUniqueSlug(model, slug, excludeId = null) {
-  const existing = await model.findUnique(
-    { 
-      where: { 
-        slug 
-      } 
-    }
-  );
+  const existing = await model.findUnique({
+    where: {
+      slug,
+    },
+  });
   if (!existing) return slug;
   if (excludeId && existing.id === excludeId) return slug;
   throw new Error(`Slug "${slug}" is already taken`);
 }
-
 
 // ═══════════════════════════════════════════════════════════
 // TAG SERVICES
@@ -104,9 +101,9 @@ export async function getPostById(id) {
 export async function getPostBySlug(slug) {
   return prisma.post.findFirst({
     where: { slug },
-    include: { 
-      categories: true, 
-      tags: true 
+    include: {
+      categories: true,
+      tags: true,
     },
   });
 }

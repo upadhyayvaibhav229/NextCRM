@@ -20,6 +20,7 @@ import {
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
+import { ExternalLink } from "lucide-react";
 
 interface NavItem {
   id: string;
@@ -116,10 +117,10 @@ export function Sidebar({
     : userEmail;
 
   const toggleMenu = (menuId: string) => {
-    setExpandedMenus(prev =>
+    setExpandedMenus((prev) =>
       prev.includes(menuId)
-        ? prev.filter(id => id !== menuId)
-        : [...prev, menuId]
+        ? prev.filter((id) => id !== menuId)
+        : [...prev, menuId],
     );
   };
 
@@ -202,7 +203,7 @@ export function Sidebar({
         {/* Render children if expanded */}
         {!collapsed && hasChildren && isExpanded && (
           <div className="ml-4 space-y-1 border-l border-sidebar-border/50 pl-3">
-            {item.children?.map(child => renderNavItem(child, depth + 1))}
+            {item.children?.map((child) => renderNavItem(child, depth + 1))}
           </div>
         )}
       </div>
@@ -214,7 +215,9 @@ export function Sidebar({
       {/* Mobile overlay */}
       <div
         className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
-          !collapsed ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          !collapsed
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setCollapsed(true)}
       />
@@ -251,12 +254,30 @@ export function Sidebar({
 
         {/* Navigation */}
         <nav className="flex-1 py-6 px-3 space-y-1.5 ">
-          {navItems.map(item => renderNavItem(item))}
+          {navItems.map((item) => renderNavItem(item))}
         </nav>
 
         {/* Bottom Section */}
         <div className="space-y-4 border-t border-sidebar-border/50 p-4">
           <div className="px-1">
+            {/* Visit Site */}
+            <a
+              href="/"
+              target="_blank"
+              className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 transition-all duration-200 ${
+                collapsed ? "justify-center" : ""
+              }`}
+            >
+              <ExternalLink size={18} strokeWidth={1.5} />
+              {!collapsed && (
+                <div className="flex-1 text-left">
+                  <span className="text-sm font-medium block">Visit Site</span>
+                  <span className="text-[11px] text-sidebar-foreground/40 block">
+                    View public site
+                  </span>
+                </div>
+              )}
+            </a>
             <ThemeToggle collapsed={collapsed} />
           </div>
 
@@ -288,7 +309,9 @@ export function Sidebar({
               <button
                 onClick={handleLogout}
                 className={`rounded-lg text-sidebar-foreground/40 hover:text-red-500 hover:bg-red-500/10 transition-all duration-200 ${
-                  collapsed ? "absolute -right-1 -top-1 p-1 bg-sidebar" : "p-1.5"
+                  collapsed
+                    ? "absolute -right-1 -top-1 p-1 bg-sidebar"
+                    : "p-1.5"
                 }`}
                 aria-label="Log out"
                 title="Log out"

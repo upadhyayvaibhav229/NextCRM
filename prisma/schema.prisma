@@ -20,6 +20,7 @@ model Page {
   css       String?
   js        String?
   status    String // draft | published
+  seoData   Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -39,32 +40,29 @@ model Post {
 
   status ContentStatus @default(DRAFT)
 
-  seoTitle       String?
-  seoDescription String?
+  seoData Json?
 
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   format      String    @default("standard")
 
-  
   categories Category[]
   tags       Tag[]
 }
 
 model Category {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  slug        String   @unique
+  slug        String  @unique
   description String?
 
-  parentId    String?
-  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryHierarchy")
+  parentId String?
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
 
-  posts       Post[]
+  posts Post[]
 }
-
 
 model Tag {
   id   String @id @default(cuid())
@@ -95,6 +93,24 @@ model MenuItem {
   parentId Int?
   parent   MenuItem?  @relation("MenuItemChildren", fields: [parentId], references: [id])
   children MenuItem[] @relation("MenuItemChildren")
+}
+
+model SiteSettings {
+  id Int @id @default(1)
+
+  siteName    String?
+  siteTagline String?
+
+  logo    String?
+  favicon String?
+
+  defaultMetaTitle       String?
+  defaultMetaDescription String?
+
+  postsPerPage Int @default(10)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {

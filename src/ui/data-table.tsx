@@ -364,7 +364,7 @@ export function DataTable<T extends { id: string | number }>({
         <div className="space-y-4">
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex flex-1 items-center gap-3">
+                <div className="flex justify-between flex-1 items-center gap-3">
                     {searchKeys.length > 0 && (
                         <div className="relative flex-1 sm:max-w-md">
                             {/* <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> */}

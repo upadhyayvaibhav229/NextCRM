@@ -14,6 +14,7 @@ interface Post {
   publishedAt?: string | null;
   categories?: { id: string; name: string; slug: string }[];
   tags?: { id: string; name: string; slug: string }[];
+  seoData?: any;
 }
 
 export default function PublicPostPage() {
@@ -30,7 +31,10 @@ export default function PublicPostPage() {
   // Handle navigation from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === "NAVIGATE" && typeof event.data.url === "string") {
+      if (
+        event.data?.type === "NAVIGATE" &&
+        typeof event.data.url === "string"
+      ) {
         router.push(event.data.url);
       }
     };
@@ -60,8 +64,14 @@ export default function PublicPostPage() {
     fetchPost();
   }, [slug]);
 
-  const headerMenu = useMemo(() => menus.find((m) => m.location === "header"), [menus]);
-  const footerMenu = useMemo(() => menus.find((m) => m.location === "footer"), [menus]);
+  const headerMenu = useMemo(
+    () => menus.find((m) => m.location === "header"),
+    [menus],
+  );
+  const footerMenu = useMemo(
+    () => menus.find((m) => m.location === "footer"),
+    [menus],
+  );
 
   if (loading || menusLoading) {
     return (
@@ -76,8 +86,13 @@ export default function PublicPostPage() {
       <div className="flex min-h-screen items-center justify-center bg-white px-6">
         <div className="text-center">
           <h1 className="text-6xl font-bold text-gray-900">404</h1>
-          <p className="mt-3 text-lg text-gray-600">Post not found: /posts/{slug}</p>
-          <a href="/" className="mt-4 inline-block text-blue-600 hover:underline">
+          <p className="mt-3 text-lg text-gray-600">
+            Post not found: /posts/{slug}
+          </p>
+          <a
+            href="/"
+            className="mt-4 inline-block text-blue-600 hover:underline"
+          >
             ← Back to home
           </a>
         </div>
@@ -92,7 +107,8 @@ export default function PublicPostPage() {
     items.forEach((item) => map.set(item.id, { ...item, children: [] }));
     const roots: any[] = [];
     items.forEach((item) => {
-      if (item.parentId) map.get(item.parentId)?.children.push(map.get(item.id));
+      if (item.parentId)
+        map.get(item.parentId)?.children.push(map.get(item.id));
       else roots.push(map.get(item.id));
     });
     return roots;
@@ -101,7 +117,8 @@ export default function PublicPostPage() {
   const mapItems = (items: any[], className: string): string =>
     items
       .map((item) => {
-        const href = item.type === "page" && item.slug ? `/${item.slug}` : item.url || "#";
+        const href =
+          item.type === "page" && item.slug ? `/${item.slug}` : item.url || "#";
         const children =
           item.children?.length > 0
             ? `<ul class="cms-submenu">${mapItems(item.children, className)}</ul>`
@@ -115,7 +132,9 @@ export default function PublicPostPage() {
 
   const publishedDate = post.publishedAt
     ? new Date(post.publishedAt).toLocaleDateString("en-US", {
-        year: "numeric", month: "long", day: "numeric",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       })
     : "";
 
@@ -137,13 +156,39 @@ export default function PublicPostPage() {
        </div>`
     : "";
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const seo = (post as any).seoData || {};
   const fullHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${post.title}</title>
-  <style>
+<title>${seo.metaTitle || post.title}</title>
+<meta name="description" content="${seo.metaDescription || post.excerpt || ""}">
+
+<meta name="robots" content="${
+    (seo.robotsIndex !== false ? "index" : "noindex") +
+    "," +
+    (seo.robotsFollow !== false ? "follow" : "nofollow")
+  }">
+
+${
+  seo.canonicalUrl
+    ? `<link rel="canonical" href="${seo.canonicalUrl}">`
+    : `<link rel="canonical" href="${siteUrl}/posts/${post.slug}">`
+}
+
+<meta property="og:type" content="article">
+<meta property="og:url" content="${siteUrl}/posts/${post.slug}">
+<meta property="og:title" content="${seo.ogTitle || seo.metaTitle || post.title}">
+<meta property="og:description" content="${seo.ogDescription || seo.metaDescription || post.excerpt || ""}">
+${seo.ogImage || post.featuredImage ? `<meta property="og:image" content="${seo.ogImage || post.featuredImage}">` : ""}
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${seo.twitterTitle || seo.ogTitle || post.title}">
+<meta name="twitter:description" content="${seo.twitterDescription || seo.metaDescription || post.excerpt || ""}">
+${seo.twitterImage || seo.ogImage || post.featuredImage ? `<meta name="twitter:image" content="${seo.twitterImage || seo.ogImage || post.featuredImage}">` : ""}  
+<style>
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;min-height:100vh;font-family:system-ui,-apple-system,sans-serif;line-height:1.6}
     body{display:flex;flex-direction:column;background:#fff;color:#111827}
@@ -256,7 +301,12 @@ export default function PublicPostPage() {
     <iframe
       srcDoc={fullHtml}
       title={post.title}
-      style={{ width: "100%", height: "100vh", border: "none", display: "block" }}
+      style={{
+        width: "100%",
+        height: "100vh",
+        border: "none",
+        display: "block",
+      }}
     />
   );
 }
