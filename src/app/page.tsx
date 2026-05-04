@@ -153,9 +153,9 @@ export default function PostsListPage() {
       .join("");
 
   const postsHtml =
-    posts.length === 0
+    latestPosts.length === 0
       ? `<div class="empty"><p>No posts published yet.</p></div>`
-      : posts
+      : latestPosts
           .map(
             (post) => `
         <article class="post-card">
@@ -194,10 +194,10 @@ export default function PostsListPage() {
           )
           .join("");
 
-          // ─── If homepage is set to a static page ─────────────────
-if (page && settings) {
-  const seo = page.seoData || {};
-  const pageHtml = `<!DOCTYPE html>
+  // ─── If homepage is set to a static page ─────────────────
+  if (page && settings) {
+    const seo = page.seoData || {};
+    const pageHtml = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -262,16 +262,26 @@ if (page && settings) {
           ${settings.footerDescription ? `<p class="footer-brand-desc">${settings.footerDescription}</p>` : ""}
         </div>
         <div class="footer-cols">
-          ${footerMenus.sort((a, b) => a.location.localeCompare(b.location)).map((menu) => `
+          ${footerMenus
+            .sort((a, b) => a.location.localeCompare(b.location))
+            .map(
+              (menu) => `
             <div class="footer-col">
               <h4 class="footer-col-title">${menu.name}</h4>
               <ul class="footer-col-links">
-                ${menu.items.map((item: any) => {
-                  const href = item.type === "page" && item.slug ? `/${item.slug}` : item.url || "#";
-                  return `<li><a href="${href}" class="footer-col-link" onclick="handleNav(event,'${href}')">${item.label}</a></li>`;
-                }).join("")}
+                ${menu.items
+                  .map((item: any) => {
+                    const href =
+                      item.type === "page" && item.slug
+                        ? `/${item.slug}`
+                        : item.url || "#";
+                    return `<li><a href="${href}" class="footer-col-link" onclick="handleNav(event,'${href}')">${item.label}</a></li>`;
+                  })
+                  .join("")}
               </ul>
-            </div>`).join("")}
+            </div>`,
+            )
+            .join("")}
         </div>
       </div>
       <div class="footer-bottom">
@@ -289,14 +299,19 @@ if (page && settings) {
 </body>
 </html>`;
 
-  return (
-    <iframe
-      srcDoc={pageHtml}
-      title={page.title}
-      style={{ width: "100%", height: "100vh", border: "none", display: "block" }}
-    />
-  );
-}
+    return (
+      <iframe
+        srcDoc={pageHtml}
+        title={page.title}
+        style={{
+          width: "100%",
+          height: "100vh",
+          border: "none",
+          display: "block",
+        }}
+      />
+    );
+  }
 
   const fullHtml = `<!DOCTYPE html>
 <html>
@@ -386,7 +401,7 @@ if (page && settings) {
   <header class="page-header">
     <div class="page-header-inner">
       <h1>Posts</h1>
-      <p>${posts.length} published post${posts.length !== 1 ? "s" : ""}</p>
+      <p>${latestPosts.length} published post${latestPosts.length !== 1 ? "s" : ""}</p>
     </div>
   </header>
 

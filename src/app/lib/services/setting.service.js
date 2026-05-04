@@ -51,14 +51,18 @@ export async function updateSettings(input) {
 
       homepageType: input.homepageType,
       homepagePageId:
-        input.homepagePageId !== undefined
-          ? Number(input.homepagePageId)
-          : undefined,
+        input.homepageType === "posts"
+          ? null
+          : input.homepagePageId !== undefined
+            ? Number(input.homepagePageId)
+            : undefined,
 
       postsPageId:
-        input.postsPageId !== undefined
-          ? Number(input.postsPageId)
-          : undefined,
+        input.homepageType === "posts"
+          ? null
+          : input.postsPageId !== undefined
+            ? Number(input.postsPageId)
+            : undefined,
     },
   });
 }

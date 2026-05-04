@@ -324,28 +324,40 @@ export function SettingsPage({
             <div className="px-6 py-4 border-b border-border bg-muted/20">
               <h2 className="text-lg font-semibold">Reading Settings</h2>
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-3">
+                Your homepage displays
+              </label>
 
-            <div className="p-6 space-y-5">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Homepage Displays
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="homepageType"
+                    value="posts"
+                    checked={settings.homepageType === "posts"}
+                    onChange={() => {
+                      updateField("homepageType", "posts");
+                      updateField("homepagePageId", null); // ← reset
+                      updateField("postsPageId", null); // ← reset
+                    }}
+                    className="accent-primary"
+                  />
+                  <span className="text-sm">Your latest posts</span>
                 </label>
 
-                <select
-                  value={settings.homepageType || "posts"}
-                  onChange={(e) =>
-                    updateField(
-                      "homepageType",
-                      e.target.value as "posts" | "page",
-                    )
-                  }
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                >
-                  <option value="posts">Your latest posts</option>
-                  <option value="page">A static page</option>
-                </select>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="homepageType"
+                    value="page"
+                    checked={settings.homepageType === "page"}
+                    onChange={() => updateField("homepageType", "page")}
+                    className="h-4 w-4"
+                  />
+                  <span className="text-sm">A static page</span>
+                </label>
               </div>
-
               {settings.homepageType === "page" && (
                 <>
                   <div>
@@ -359,14 +371,12 @@ export function SettingsPage({
                       }
                       className="w-full border rounded-md px-3 py-2 text-sm"
                     >
-                      {
-                        /* map pages here */
-                        pages.map((page) => (
-                          <option key={page.id} value={page.id}>
-                            {page.title}
-                          </option>
-                        ))
-                      }
+                      <option value="">Select Homepage</option>
+                      {pages.map((page) => (
+                        <option key={page.id} value={page.id}>
+                          {page.title}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -381,6 +391,7 @@ export function SettingsPage({
                       }
                       className="w-full border rounded-md px-3 py-2 text-sm"
                     >
+                      <option value="">Select Posts Page</option>
                       {pages.map((page) => (
                         <option key={page.id} value={page.id}>
                           {page.title}
