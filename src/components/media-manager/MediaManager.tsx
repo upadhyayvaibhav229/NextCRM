@@ -1,22 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { MediaGrid } from "./MediaGrid";
-// import { UploadZone } from "./UploadZone";
-// import { MediaToolbar } from "./MediaToolbar";
-// import { MediaPreview } from "./MediaPreview";
-// import { DeleteConfirm } from "./DeleteConfirm";
-import { LayoutGrid, LayoutList } from "lucide-react";
-import { Button } from "@/src/ui/button";
 import { UploadZone } from "./UploadZone";
-import { MediaToolbar } from "./MediaToolbar";
+import { MediaFilter, MediaToolbar } from "./MediaToolbar";
 import { MediaPreview } from "./MediaPreview";
 import { DeleteConfirm } from "./DeleteConfirm";
-// import UploadZone from "./UploadZone";
-// import MediaToolbar from "./MediaToolbar";
-// import MediaPreview from "./MediaPreview";
-// import DeleteConfirm from "./DeleteConfirm";
+import { Button } from "@/src/ui/button";
 
 export interface MediaItem {
   id: number;
@@ -28,6 +19,10 @@ export interface MediaItem {
   width: number | null;
   height: number | null;
   createdAt: string;
+  altText?: string | null;
+  title?: string | null;
+  caption?: string | null;
+  description?: string | null;
 }
 
 export type ViewMode = "grid" | "list";
@@ -42,55 +37,183 @@ export function MediaManager() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [totalItems, setTotalItems] = useState(0);
 
-async function fetchMedia() {
-    const res = await fetch(
-      `/api/media?page=${page}&search=${searchQuery}`
-    );
+  // Add state for filters
+  const [filter, setFilter] = useState<MediaFilter>({
+    type: "all",
+    dateRange: "all",
+    sortBy: "date",
+    sortOrder: "desc",
+  });
 
-    const data = await res.json();
+  // Fetch media function
+  const fetchMedia = useCallback(async () => {
+    if (loading && page === 1) setLoading(true);
 
-    setMedia(data.data.items);
-  }
+    try {
+      // Build query params
+      const params = new URLSearchParams();
+      params.append("page", page.toString());
+      if (searchQuery) params.append("search", searchQuery);
+      if (filter.type !== "all") params.append("type", filter.type);
+      if (filter.dateRange && filter.dateRange !== "all")
+        params.append("dateRange", filter.dateRange);
+      if (filter.sortBy) params.append("sortBy", filter.sortBy);
+      if (filter.sortOrder) params.append("sortOrder", filter.sortOrder);
 
-  useEffect(() => {
-    fetchMedia();
-  }, [page]);
+      const res = await fetch(`/api/media?${params.toString()}`);
+      const data = await res.json();
 
+      if (data.success) {
+        if (page === 1) {
+          setMedia(data.data.items);
+        } else {
+          setMedia((prev) => [...prev, ...data.data.items]);
+        }
+        setHasMore(data.data.hasMore || false);
+        setTotalItems(data.data.total || data.data.items.length);
+      } else {
+        toast.error(data.message || "Failed to fetch media");
+      }
+    } catch (error) {
+      toast.error("Failed to fetch media");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, searchQuery, filter]);
 
+  // Filter and sort media items client-side (if API doesn't support filtering)
+  const filteredAndSortedItems = useMemo(() => {
+    let filtered = [...media];
+
+    // Only apply client-side filters if needed
+    // For better performance, prefer server-side filtering via API
+
+    // Filter by type (client-side fallback)
+    if (filter.type !== "all") {
+      filtered = filtered.filter((item) => {
+        if (filter.type === "image") return item.mimeType?.startsWith("image/");
+        if (filter.type === "video") return item.mimeType?.startsWith("video/");
+        if (filter.type === "audio") return item.mimeType?.startsWith("audio/");
+        if (filter.type === "document")
+          return (
+            item.mimeType?.includes("pdf") ||
+            item.mimeType?.includes("document") ||
+            item.mimeType?.includes("text")
+          );
+        if (filter.type === "other")
+          return (
+            !item.mimeType?.startsWith("image/") &&
+            !item.mimeType?.startsWith("video/") &&
+            !item.mimeType?.startsWith("audio/")
+          );
+        return true;
+      });
+    }
+
+    // Filter by date range (client-side fallback)
+    if (filter.dateRange && filter.dateRange !== "all") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      filtered = filtered.filter((item) => {
+        const itemDate = new Date(item.createdAt);
+
+        switch (filter.dateRange) {
+          case "today":
+            return itemDate >= today;
+          case "week":
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 7);
+            return itemDate >= weekAgo;
+          case "month":
+            const monthAgo = new Date(today);
+            monthAgo.setMonth(today.getMonth() - 1);
+            return itemDate >= monthAgo;
+          case "year":
+            const yearAgo = new Date(today);
+            yearAgo.setFullYear(today.getFullYear() - 1);
+            return itemDate >= yearAgo;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Filter by search query (client-side fallback)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (item) =>
+          item.originalName.toLowerCase().includes(query) ||
+          item.altText?.toLowerCase().includes(query) ||
+          item.title?.toLowerCase().includes(query) ||
+          item.description?.toLowerCase().includes(query),
+      );
+    }
+
+    // Sort items (client-side fallback)
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (filter.sortBy) {
+        case "name":
+          comparison = a.originalName.localeCompare(b.originalName);
+          break;
+        case "size":
+          comparison = (a.size || 0) - (b.size || 0);
+          break;
+        case "date":
+        default:
+          comparison =
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+      }
+      return filter.sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    return filtered;
+  }, [media, filter, searchQuery]);
+
+  // Fetch media when dependencies change
   useEffect(() => {
     setPage(1);
     setMedia([]);
     fetchMedia();
-  }, [searchQuery]);
+  }, [searchQuery, filter]);
 
-//   useEffect(() => {
-//     fetchMedia();
-//   }, [page]);
+  useEffect(() => {
+    if (page > 1) {
+      fetchMedia();
+    }
+  }, [page]);
 
   const handleUploadComplete = () => {
     setPage(1);
+    setMedia([]);
     fetchMedia();
+    toast.success("Media uploaded successfully");
   };
-
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    
+
     try {
       const response = await fetch(`/api/media/${deleteItem.id}`, {
         method: "DELETE",
       });
-      
+
       if (!response.ok) throw new Error();
-      
+
       toast.success("Media deleted");
-      setMedia(prev => prev.filter(m => m.id !== deleteItem.id));
-      setSelectedIds(prev => {
+      setMedia((prev) => prev.filter((m) => m.id !== deleteItem.id));
+      setSelectedIds((prev) => {
         const next = new Set(prev);
         next.delete(deleteItem.id);
         return next;
       });
+      setTotalItems((prev) => prev - 1);
     } catch (error) {
       toast.error("Failed to delete");
     } finally {
@@ -100,45 +223,93 @@ async function fetchMedia() {
 
   const handleBulkDelete = async () => {
     const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+
     try {
-      await Promise.all(ids.map(id => 
-        fetch(`/api/media/${id}`, { method: "DELETE" })
-      ));
-      
+      const response = await fetch(`/api/media/bulk-delete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ids }),
+      });
+
+      if (!response.ok) throw new Error();
+
       toast.success(`${ids.length} items deleted`);
-      setMedia(prev => prev.filter(m => !selectedIds.has(m.id)));
+      setMedia((prev) => prev.filter((m) => !selectedIds.has(m.id)));
       setSelectedIds(new Set());
+      setTotalItems((prev) => prev - ids.length);
     } catch (error) {
       toast.error("Failed to delete some items");
     }
   };
 
-  const loadMore = () => {
-    if (!loading && hasMore) {
-      setPage(prev => prev + 1);
+  const handleUpdate = async (item: MediaItem, updates: Partial<MediaItem>) => {
+    try {
+      const response = await fetch(`/api/media/${item.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update media");
+      }
+
+      const updatedMedia = data.data as MediaItem;
+
+      setMedia((prev) =>
+        prev.map((mediaItem) =>
+          mediaItem.id === updatedMedia.id ? updatedMedia : mediaItem,
+        ),
+      );
+      setPreviewItem(updatedMedia);
+      toast.success("Media updated successfully");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update media",
+      );
+      throw error;
     }
   };
 
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const selectedCount = selectedIds.size;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dot-grid">
       <UploadZone onUploadComplete={handleUploadComplete} />
-      
+
       <div className="max-w-7xl mx-auto px-4 py-6">
         <MediaToolbar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          selectedCount={selectedIds.size}
+          selectedCount={selectedCount}
           onBulkDelete={handleBulkDelete}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          filter={filter}
+          onFilterChange={setFilter}
+          totalItems={totalItems}
+          filteredCount={filteredAndSortedItems.length}
         />
-        
+
         <MediaGrid
-          items={media}
-          loading={loading}
+          items={filteredAndSortedItems}
+          loading={loading && page === 1}
           selectedIds={selectedIds}
           onSelect={(id) => {
-            setSelectedIds(prev => {
+            setSelectedIds((prev) => {
               const next = new Set(prev);
               if (next.has(id)) next.delete(id);
               else next.add(id);
@@ -152,7 +323,7 @@ async function fetchMedia() {
           hasMore={hasMore}
         />
       </div>
-      
+
       <MediaPreview
         item={previewItem}
         onClose={() => setPreviewItem(null)}
@@ -160,8 +331,9 @@ async function fetchMedia() {
           setPreviewItem(null);
           setDeleteItem(item);
         }}
+        onUpdate={handleUpdate}
       />
-      
+
       <DeleteConfirm
         open={!!deleteItem}
         item={deleteItem}

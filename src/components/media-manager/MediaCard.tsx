@@ -2,10 +2,12 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { File, Check, Trash2, Eye, Download } from "lucide-react";
+import { File, Check, Trash2, Eye } from "lucide-react";
 import { Button } from "@/src/ui/button";
 import { cn } from "@/src/lib/utils";
-import { ViewMode, MediaItem } from "./MediaManager";
+import { MediaItem } from "./MediaManager";
+import { Column, DataTable } from "@/src/ui/data-table";
+import { toast } from "sonner";
 
 interface MediaCardProps {
   item: MediaItem;
@@ -13,7 +15,17 @@ interface MediaCardProps {
   onSelect: (id: number) => void;
   onPreview: (item: MediaItem) => void;
   onDelete: (item: MediaItem) => void;
-  viewMode: ViewMode;
+}
+
+interface MediaTableProps {
+  items: MediaItem[];
+  selectedIds: Set<number>;
+  onSelect: (id: number) => void;
+  onPreview: (item: MediaItem) => void;
+  onDelete: (item: MediaItem) => void;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loading?: boolean;
 }
 
 export function MediaCard({
@@ -22,62 +34,16 @@ export function MediaCard({
   onSelect,
   onPreview,
   onDelete,
-  viewMode,
 }: MediaCardProps) {
   const [imageError, setImageError] = useState(false);
   const isImage = item.mimeType?.startsWith("image/");
-  
-  if (viewMode === "list") {
-    return (
-      <div
-        className={cn(
-          "flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer",
-          isSelected && "ring-2 ring-primary"
-        )}
-        onClick={() => onSelect(item.id)}
-      >
-        <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
-          {isImage && !imageError ? (
-            <Image
-              src={item.url}
-              alt={item.originalName}
-              width={48}
-              height={48}
-              className="object-cover rounded"
-              onError={() => setImageError(true)}
-              unoptimized
-            />
-          ) : (
-            <File className="w-6 h-6 text-muted-foreground" />
-          )}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <p className="font-medium truncate">{item.originalName}</p>
-          <p className="text-xs text-muted-foreground">
-            {item.width && item.height ? `${item.width}×${item.height} · ` : ""}
-            {formatFileSize(item.size)}
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <Button variant="ghost" size="sm" onClick={() => onPreview(item)}>
-            <Eye className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => onDelete(item)}>
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-  
+
   return (
     <div
       className={cn(
         "group relative rounded-xl border bg-card overflow-hidden transition-all duration-200",
         "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer",
-        isSelected && "ring-2 ring-primary ring-offset-2"
+        isSelected && "ring-2 ring-primary ring-offset-2",
       )}
       onClick={() => onSelect(item.id)}
     >
@@ -87,13 +53,13 @@ export function MediaCard({
             "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all",
             isSelected
               ? "bg-primary border-primary"
-              : "bg-background/80 border-muted-foreground/50 backdrop-blur-sm"
+              : "bg-background/80 border-muted-foreground/50 backdrop-blur-sm",
           )}
         >
           {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
         </div>
       </div>
-      
+
       <div className="aspect-square bg-muted/30 relative overflow-hidden">
         {isImage && !imageError ? (
           <Image
@@ -112,7 +78,7 @@ export function MediaCard({
             </span>
           </div>
         )}
-        
+
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           <Button
             size="sm"
@@ -138,7 +104,7 @@ export function MediaCard({
           </Button>
         </div>
       </div>
-      
+
       <div className="p-2">
         <p className="text-xs font-medium truncate">{item.originalName}</p>
         <p className="text-xs text-muted-foreground">
@@ -146,6 +112,133 @@ export function MediaCard({
         </p>
       </div>
     </div>
+  );
+}
+
+export function MediaTable({
+  items,
+  onPreview,
+  onDelete,
+}: MediaTableProps) {
+  const columns: Column<MediaItem>[] = [
+    {
+      key: "name",
+      header: "Name",
+      cell: (item) => {
+        const isImage = item.mimeType?.startsWith("image/");
+
+        return (
+          <div className="group flex items-center gap-3 min-w-0">
+            <div className="w-16 h-16 rounded-md overflow-hidden bg-muted flex items-center justify-center shrink-0">
+              {isImage ? (
+                <Image
+                  src={item.url}
+                  alt={item.originalName}
+                  width={64}
+                  height={64}
+                  className="object-cover w-full h-full"
+                  unoptimized
+                />
+              ) : (
+                <File className="w-4 h-4 text-muted-foreground" />
+              )}
+            </div>
+
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="font-medium truncate text-foreground">
+                {item.originalName}
+              </span>
+
+              <span className="text-xs truncate text-muted-foreground">
+                {item.fileName}
+              </span>
+
+              {/* Hover Actions */}
+              <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(
+                      `${window.location.origin}${item.url}`,
+                    );
+                    toast.success("URL copied");
+                  }}
+                  className="text-xs text-primary hover:underline cursor-pointer"
+                >
+                  Copy URL
+                </button>
+                <span className="text-xs text-muted-foreground">|</span>
+                <a
+                  href={item.url}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Download
+                </a>
+              </div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "date",
+      header: "Date",
+      cell: (item) => new Date(item.createdAt).toLocaleDateString(),
+      className: "text-xs text-muted-foreground"
+    },
+    {
+      key: "uploadedto",
+      header: "Uploaded to",
+      cell: (item) => formatFileSize(item.size),
+      className: "text-xs text-muted-foreground",
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      cell: (row) => (
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreview(row);
+            }}
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(row);
+            }}
+          >
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
+      ),
+      filterable: false,
+      className: "w-20 text-center",
+    },
+  ];
+
+  return (
+    <DataTable
+      data={items}
+      columns={columns}
+      pageSize={25}
+      searchKeys={["originalName", "fileName", "mimeType"]}
+      searchPlaceholder="Search media..."
+      emptyMessage="No media found."
+    />
   );
 }
 

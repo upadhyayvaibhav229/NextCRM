@@ -3,6 +3,8 @@ import { Space_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/src/components/theme-provider'
 import { SessionProvider } from '@/src/components/auth/SessionProvider'
+import { Toaster as AppToaster } from '@/src/ui/toaster'
+import { Toaster as SonnerToaster } from '@/src/ui/sonner'
 import './globals.css'
 
 const spaceMono = Space_Mono({ 
@@ -62,6 +64,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider>{children}</SessionProvider>
+          <AppToaster />
+          <SonnerToaster richColors closeButton />
           {process.env.NODE_ENV === 'production' && <Analytics />}
         </ThemeProvider>
       </body>

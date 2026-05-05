@@ -4,10 +4,37 @@ import fs from "fs/promises";
 import path from "path";
 import { ApiError } from "../utils/ApiError";
 
+// Allowed MIME Types
+const ALLOWED_TYPES = [
+  // Images
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+  "image/gif",
+
+  // Documents
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+
+  // Video
+  "video/mp4",
+  "video/webm",
+
+  // Audio
+  "audio/mpeg",
+  "audio/wav",
+];
+
 // ─────────────────────────────────────────────
 // CREATE MEDIA
 // ─────────────────────────────────────────────
 export async function createMedia(file) {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new ApiError(400, "Unsupported file type");
+  }
+
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
@@ -25,14 +52,23 @@ export async function createMedia(file) {
 
   await fs.mkdir(uploadDir, { recursive: true });
 
-  const fileName =
-    Date.now() + "-" + file.name.replace(/\s+/g, "-");
+  const safeName = file.name.replace(/\s+/g, "-");
 
+  const fileName = `${Date.now()}-${safeName}`;
   const filePath = path.join(uploadDir, fileName);
 
   await fs.writeFile(filePath, buffer);
 
-  const metadata = await sharp(buffer).metadata();
+  let width = null;
+  let height = null;
+
+  // Only process image metadata for image files
+  if (file.type.startsWith("image/")) {
+    const metadata = await sharp(buffer).metadata();
+
+    width = metadata.width ?? null;
+    height = metadata.height ?? null;
+  }
 
   return prisma.media.create({
     data: {
@@ -41,8 +77,9 @@ export async function createMedia(file) {
       url: `/uploads/${year}/${month}/${fileName}`,
       mimeType: file.type,
       size: file.size,
-      width: metadata.width ?? null,
-      height: metadata.height ?? null,
+      width,
+      height,
+      title: file.name,
     },
   });
 }
@@ -69,6 +106,12 @@ export async function getAllMedia({
           },
           {
             originalName: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+          {
+            title: {
               contains: search,
               mode: "insensitive",
             },
@@ -101,27 +144,33 @@ export async function getAllMedia({
   };
 }
 
-// update Media
-
+// ─────────────────────────────────────────────
+// UPDATE MEDIA META
+// ─────────────────────────────────────────────
 export async function updateMedia(id, input) {
   return prisma.media.update({
-    where: { id: Number(id) },
+    where: {
+      id: Number(id),
+    },
     data: {
-      altText: input.altText,
-      title: input.title,
-      caption: input.caption,
-      description: input.description
-
-    }
-  })
+      altText: input.altText ?? null,
+      title: input.title ?? null,
+      caption: input.caption ?? null,
+      description: input.description ?? null,
+    },
+  });
 }
+
 
 // ─────────────────────────────────────────────
 // DELETE MEDIA
 // ─────────────────────────────────────────────
+
 export async function deleteMedia(id) {
   const media = await prisma.media.findUnique({
-    where: { id: Number(id) },
+    where: {
+      id: Number(id),
+    },
   });
 
   if (!media) {
@@ -137,7 +186,9 @@ export async function deleteMedia(id) {
   await fs.unlink(filePath).catch(() => null);
 
   await prisma.media.delete({
-    where: { id: Number(id) },
+    where: {
+      id: Number(id),
+    },
   });
 
   return true;

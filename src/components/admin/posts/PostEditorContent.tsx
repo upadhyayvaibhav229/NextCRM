@@ -26,6 +26,7 @@ import {
   Minus,
 } from "lucide-react";
 import { Post } from "./Post.type";
+import { Button } from "@/src/ui/button";
 
 interface PostEditorContentProps {
   post: Post;

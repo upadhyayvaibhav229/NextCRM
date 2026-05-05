@@ -160,7 +160,7 @@ export function PostsSection() {
     {
       key: "title",
       header: "Title",
-      sortable: true,
+      // sortable: true,
       filterable: false,
       cell: (row) => (
         <span className="font-medium text-foreground">{row.title}</span>
@@ -169,7 +169,7 @@ export function PostsSection() {
     {
       key: "slug",
       header: "Slug",
-      sortable: false,
+      // sortable: false,
       filterable: false,
       cell: (row) => (
         <code className="font-mono text-xs text-muted-foreground">
@@ -180,7 +180,7 @@ export function PostsSection() {
     {
       key: "status",
       header: "Status",
-      sortable: true,
+      // sortable: true,
       filterable: true,
       filterValue: (row) => row.status,
       cell: (row) => (
@@ -203,7 +203,7 @@ export function PostsSection() {
     {
       key: "categories",
       header: "Categories",
-      sortable: false,
+      // sortable: false,
       filterable: false,
       cell: (row) => {
         const cats = (row as any).categories ?? [];
@@ -243,7 +243,7 @@ export function PostsSection() {
     {
       key: "updatedAt",
       header: "Last Modified",
-      sortable: true,
+      // sortable: true,
       filterable: false,
       cell: (row) => (
         <span className="font-mono text-xs text-muted-foreground">
@@ -260,7 +260,7 @@ export function PostsSection() {
     {
       key: "actions",
       header: "Actions",
-      sortable: false,
+      // sortable: false,
       filterable: false,
       className: "text-right",
       cell: (row) =>

@@ -7,6 +7,7 @@ import { PostEditorActions } from "./PostEditorActions";
 import { PostEditorContent } from "./PostEditorContent";
 import { PostEditorSidebar } from "./Posteditorsidebar";
 import { Post } from "./Post.type";
+import { Button } from "@/src/ui/button";
 // import { PostEditorSidebar } from "./PostEditorSidebar";
 
 interface PostEditorProps {
@@ -41,10 +42,15 @@ export function PostEditor({ post, onChange, onSave, onCancel }: PostEditorProps
         onSave={handleSave}
         isSaving={isSaving}
       />
+      <div className="px-6 py-6">
+
+              <Button className="">Add Media</Button>
+      </div>
 
       {/* Two column layout */}
-      <div className="flex gap-6 px-6 py-6 max-w-[1500px] w-full mx-auto">
+      <div className="flex gap-6  max-w-375 w-full mx-auto">
         {/* Left — editor */}
+
         <div className="flex-1 min-w-0">
           <PostEditorContent post={post} onChange={onChange} />
         </div>

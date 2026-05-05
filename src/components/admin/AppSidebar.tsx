@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ExternalLink } from "lucide-react";
 
 interface NavItem {
@@ -220,6 +220,25 @@ export function Sidebar({
     );
   };
 
+  // Add this useEffect to inject styles for hiding scrollbar
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
     <>
       {/* Mobile overlay */}
@@ -238,7 +257,7 @@ export function Sidebar({
         }`}
       >
         {/* Logo Section */}
-        <div className="flex items-center h-16 px-5 border-b border-sidebar-border/50 bg-gradient-to-r from-sidebar/50 to-transparent">
+        <div className="shrink-0 flex items-center h-16 px-5 border-b border-sidebar-border/50 bg-linear-to-r from-sidebar/50 to-transparent">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-primary/60 flex items-center justify-center shadow-lg">
               <Sparkles size={18} className="text-white" />
@@ -262,19 +281,21 @@ export function Sidebar({
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 py-6 px-3 space-y-1.5 ">
+        {/* Navigation - Made scrollable with hidden scrollbar */}
+        <div 
+          className="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 hide-scrollbar"
+        >
           {navItems.map((item) => renderNavItem(item))}
-        </nav>
+        </div>
 
-        {/* Bottom Section */}
-        <div className="space-y-4 border-t border-sidebar-border/50 p-4">
-          <div className="px-1">
+        {/* Bottom Section - Made sticky/always visible */}
+        <div className="shrink-0 border-t border-sidebar-border/50 p-3 space-y-3 bg-gradient-to-b from-transparent to-sidebar/95">
+          <div className="space-y-1">
             {/* Visit Site */}
             <a
               href="/"
               target="_blank"
-              className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 transition-all duration-200 ${
+              className={`flex items-center gap-3 w-full px-3 py-2 rounded-xl text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 transition-all duration-200 ${
                 collapsed ? "justify-center" : ""
               }`}
             >
@@ -343,8 +364,8 @@ export function Sidebar({
 
           {/* Version info */}
           {!collapsed && (
-            <div className="px-3 pt-2 text-center">
-              <p className="text-[10px] text-sidebar-foreground/30 font-mono ">
+            <div className="text-center">
+              <p className="text-[10px] text-sidebar-foreground/30 font-mono">
                 © 2024 CMS Platform
               </p>
             </div>

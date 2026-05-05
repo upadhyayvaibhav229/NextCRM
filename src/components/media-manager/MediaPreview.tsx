@@ -248,7 +248,7 @@ export function MediaPreview({ item, onClose, onDelete, onUpdate }: MediaPreview
                           {isEditing ? (
                             <input
                               type="text"
-                              value={editedData.title || ""}
+                              value={editedData.title || item.fileName}
                               onChange={(e) => handleFieldChange("title", e.target.value)}
                               className="w-full p-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                               placeholder="Image title"
@@ -256,9 +256,9 @@ export function MediaPreview({ item, onClose, onDelete, onUpdate }: MediaPreview
                           ) : (
                             <div className="text-sm text-muted-foreground">
                               {item.title ? (
-                                <p>{item.title}</p>
+                                <p>{item.title }</p>
                               ) : (
-                                <p className="italic">No title provided</p>
+                                <p className="italic">{item.fileName || "No title provided"}</p>
                               )}
                             </div>
                           )}
