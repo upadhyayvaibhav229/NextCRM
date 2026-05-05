@@ -29,7 +29,7 @@ async function ensureUniqueSlug(model, slug, excludeId = null) {
 // ═══════════════════════════════════════════════════════════
 
 export async function getAllCategories() {
-  return prisma.category.findMany({
+  return prisma.category.findMany({ 
   orderBy: { name: "asc" },
   include: {
     parent: {

@@ -124,10 +124,22 @@ model FooterSettings {
   value Json
 }
 
+model Media {
+  id           Int      @id @default(autoincrement())
+  fileName     String
+  originalName String
+  url          String
+  mimeType     String
+  size         Int
+  width        Int?
+  height       Int?
+  altText      String?
+  createdAt    DateTime @default(now())
+}
 
 model User {
   id       Int    @id @default(autoincrement())
   email    String @unique
-  password String
+  password String 
   role     String // admin | editor
 }

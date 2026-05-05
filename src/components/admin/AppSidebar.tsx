@@ -68,12 +68,21 @@ const navItems: NavItem[] = [
         icon: Hash,
         description: "Manage tags",
       },
-      // {
-      //   id: "add-new",
-      //   label: "Add New",
-      //   icon: PlusCircle,
-      //   description: "Create new post",
-      // },
+    ],
+  },
+  {
+    id: "media",
+    label: "Media Library",
+    icon: FileText,
+    description: "Manage Media Library",
+    children: [
+      { 
+        id: "all-media",
+        label: "Media Library",
+        icon: FileText,
+        description: "View all Medias",
+      },
+      
     ],
   },
   {
@@ -136,6 +145,7 @@ export function Sidebar({
     const isExpanded = expandedMenus.includes(item.id);
 
     return (
+      // app sidebar
       <div key={item.id} className="space-y-1">
         <button
           onClick={() => {
