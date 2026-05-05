@@ -101,6 +101,21 @@ export async function getAllMedia({
   };
 }
 
+// update Media
+
+export async function updateMedia(id, input) {
+  return prisma.media.update({
+    where: { id: Number(id) },
+    data: {
+      altText: input.altText,
+      title: input.title,
+      caption: input.caption,
+      description: input.description
+
+    }
+  })
+}
+
 // ─────────────────────────────────────────────
 // DELETE MEDIA
 // ─────────────────────────────────────────────

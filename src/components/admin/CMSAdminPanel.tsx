@@ -16,6 +16,7 @@ import { Sidebar } from "@/src/components/admin/AppSidebar";
 import { TagTable } from "@/src/components/admin/tags/Tags";
 import AdminSettings from "./setting/Page";
 import { FooterSettingsSection } from "./FooterSettingSection";
+import { MediaManager } from "../media-manager/MediaManager";
 
 export function CMSAdminPanel() {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -42,6 +43,7 @@ export function CMSAdminPanel() {
       <main className="flex-1 min-w-0 overflow-y-auto dot-grid">
         {activeSection === "dashboard" && <DashboardSection />}
         {activeSection === "all-posts" && <PostsSection />}
+        {activeSection === "all-media" && <MediaManager />}
         {activeSection === "categories" && (
           <div className="p-8">
             <CategoryTable />
