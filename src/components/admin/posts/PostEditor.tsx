@@ -8,6 +8,7 @@ import { PostEditorContent } from "./PostEditorContent";
 import { PostEditorSidebar } from "./Posteditorsidebar";
 import { Post } from "./Post.type";
 import { Button } from "@/src/ui/button";
+import { MediaPickerModal } from "../../media-manager/MediaPicker";
 // import { PostEditorSidebar } from "./PostEditorSidebar";
 
 interface PostEditorProps {
@@ -17,9 +18,14 @@ interface PostEditorProps {
   onCancel: () => void;
 }
 
-export function PostEditor({ post, onChange, onSave, onCancel }: PostEditorProps) {
+export function PostEditor({
+  post,
+  onChange,
+  onSave,
+  onCancel,
+}: PostEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
-
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
   const handleSave = async (status?: string) => {
     setIsSaving(true);
     try {
@@ -43,8 +49,7 @@ export function PostEditor({ post, onChange, onSave, onCancel }: PostEditorProps
         isSaving={isSaving}
       />
       <div className="px-6 py-6">
-
-              <Button className="">Add Media</Button>
+        <Button onClick={() => setShowMediaPicker(true)}>Add Media</Button>
       </div>
 
       {/* Two column layout */}
@@ -60,6 +65,21 @@ export function PostEditor({ post, onChange, onSave, onCancel }: PostEditorProps
           <PostEditorSidebar post={post} onChange={onChange} />
         </div>
       </div>
+
+      <MediaPickerModal
+        open={showMediaPicker}
+        onClose={() => setShowMediaPicker(false)}
+        onSelect={(media: any) => {
+          const mediaHtml = media.mimeType.startsWith("image/")
+            ? `<img src="${media.url}" alt="${media.altText || ""}" />`
+            : `<a href="${media.url}" target="_blank">${media.originalName}</a>`;
+
+          onChange({
+            ...post,
+            content: (post.content || "") + mediaHtml,
+          });
+        }}
+      />
     </div>
   );
 }

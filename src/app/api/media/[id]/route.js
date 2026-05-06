@@ -12,6 +12,8 @@ export const DELETE = asyncHandler(async (req, { params }) => {
   );
 });
 
+  
+
 export const PATCH = asyncHandler(async (req, { params }) => {
   const { id } = await params;
   const body = await req.json();

@@ -30,68 +30,76 @@ const ALLOWED_TYPES = [
 // ─────────────────────────────────────────────
 // CREATE MEDIA
 // ─────────────────────────────────────────────
-export async function createMedia(file) {
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    throw new ApiError(400, "Unsupported file type");
+export async function createMedia(input) {
+  const files = Array.isArray(input) ? input : [input];
+
+  const uploadedMedia = [];
+
+  for (const file of files) {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      throw new ApiError(400, `Unsupported file type: ${file.type}`);
+    }
+
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    const now = new Date();
+    const year = String(now.getFullYear());
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+
+    const uploadDir = path.join(
+      process.cwd(),
+      "public",
+      "uploads",
+      year,
+      month,
+    );
+
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const safeName = file.name.replace(/\s+/g, "-");
+
+    const fileName = `${Date.now()}-${safeName}`;
+
+    const filePath = path.join(uploadDir, fileName);
+
+    await fs.writeFile(filePath, buffer);
+
+    let width = null;
+    let height = null;
+
+    // Only for image files
+    if (file.type.startsWith("image/")) {
+      const metadata = await sharp(buffer).metadata();
+
+      width = metadata.width ?? null;
+      height = metadata.height ?? null;
+    }
+
+    const media = await prisma.media.create({
+      data: {
+        fileName,
+        originalName: file.name,
+        url: `/uploads/${year}/${month}/${fileName}`,
+        mimeType: file.type,
+        size: file.size,
+        width,
+        height,
+        title: file.name,
+      },
+    });
+
+    uploadedMedia.push(media);
   }
 
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
-  const now = new Date();
-  const year = String(now.getFullYear());
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-
-  const uploadDir = path.join(
-    process.cwd(),
-    "public",
-    "uploads",
-    year,
-    month
-  );
-
-  await fs.mkdir(uploadDir, { recursive: true });
-
-  const safeName = file.name.replace(/\s+/g, "-");
-
-  const fileName = `${Date.now()}-${safeName}`;
-  const filePath = path.join(uploadDir, fileName);
-
-  await fs.writeFile(filePath, buffer);
-
-  let width = null;
-  let height = null;
-
-  // Only process image metadata for image files
-  if (file.type.startsWith("image/")) {
-    const metadata = await sharp(buffer).metadata();
-
-    width = metadata.width ?? null;
-    height = metadata.height ?? null;
-  }
-
-  return prisma.media.create({
-    data: {
-      fileName,
-      originalName: file.name,
-      url: `/uploads/${year}/${month}/${fileName}`,
-      mimeType: file.type,
-      size: file.size,
-      width,
-      height,
-      title: file.name,
-    },
-  });
+  // Return single item if only one uploaded
+  return Array.isArray(input) ? uploadedMedia : uploadedMedia[0];
 }
 
 // ─────────────────────────────────────────────
 // GET ALL MEDIA
 // ─────────────────────────────────────────────
-export async function getAllMedia({
-  page = 1,
-  limit = 20,
-  search = "",
-}) {
+export async function getAllMedia({ page = 1, limit = 20, search = "" }) {
   page = Number(page);
   limit = Number(limit);
 
@@ -161,7 +169,6 @@ export async function updateMedia(id, input) {
   });
 }
 
-
 // ─────────────────────────────────────────────
 // DELETE MEDIA
 // ─────────────────────────────────────────────
@@ -177,11 +184,7 @@ export async function deleteMedia(id) {
     throw new ApiError(404, "Media not found");
   }
 
-  const filePath = path.join(
-    process.cwd(),
-    "public",
-    media.url
-  );
+  const filePath = path.join(process.cwd(), "public", media.url);
 
   await fs.unlink(filePath).catch(() => null);
 
@@ -192,4 +195,15 @@ export async function deleteMedia(id) {
   });
 
   return true;
+}
+
+// bulk delete
+export async function bulkDeleteMedia(ids) {
+  return prisma.media.deleteMany({
+    where: {
+      id: {
+        in: ids.map(Number),
+      },
+    },
+  });
 }

@@ -227,7 +227,7 @@ export function MediaManager() {
 
     try {
       const response = await fetch(`/api/media/bulk-delete`, {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },

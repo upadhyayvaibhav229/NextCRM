@@ -1,25 +1,24 @@
-import type { Metadata } from 'next'
-import { Space_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import { ThemeProvider } from '@/src/components/theme-provider'
-import { SessionProvider } from '@/src/components/auth/SessionProvider'
-import { Toaster as AppToaster } from '@/src/ui/toaster'
-import { Toaster as SonnerToaster } from '@/src/ui/sonner'
-import './globals.css'
+import type { Metadata } from "next";
+import { Space_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { ThemeProvider } from "@/src/components/theme-provider";
+import { SessionProvider } from "@/src/components/auth/SessionProvider";
+import { Toaster as AppToaster } from "@/src/ui/toaster";
+import { Toaster as SonnerToaster } from "@/src/ui/sonner";
+import "./globals.css";
 
-const spaceMono = Space_Mono({ 
+const spaceMono = Space_Mono({
   subsets: ["latin"],
-  weight: ['400', '700'],
-  variable: '--font-space-mono',
-  display: 'swap',
+  weight: ["400", "700"],
+  variable: "--font-space-mono",
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SITE_URL}/api/setting`,
-      { cache: "no-store" }
-    );
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/setting`, {
+      cache: "no-store",
+    });
 
     const json = await res.json();
     const settings = json.data;
@@ -29,7 +28,9 @@ export async function generateMetadata(): Promise<Metadata> {
       : undefined;
 
     return {
-      title: settings?.siteName || "My Website",
+      title: settings?.siteTagline
+        ? `${settings.siteName} – ${settings.siteTagline}`
+        : settings?.siteName || "My Website",
       description: settings?.siteTagline || "Modern CMS Website",
       icons: faviconUrl
         ? {
@@ -48,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html
@@ -66,9 +67,9 @@ export default function RootLayout({
           <SessionProvider>{children}</SessionProvider>
           <AppToaster />
           <SonnerToaster richColors closeButton />
-          {process.env.NODE_ENV === 'production' && <Analytics />}
+          {process.env.NODE_ENV === "production" && <Analytics />}
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

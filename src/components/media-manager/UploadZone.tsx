@@ -16,58 +16,60 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (files: File[]) => {
     const formData = new FormData();
-    formData.append("file", file);
-    
+
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
     setUploading(true);
     setProgress(0);
-    
+
     const interval = setInterval(() => {
-      setProgress(prev => Math.min(prev + 10, 90));
+      setProgress((prev) => Math.min(prev + 10, 90));
     }, 200);
-    
+
     try {
       const response = await fetch("/api/media/upload", {
         method: "POST",
         body: formData,
       });
-      
+
       clearInterval(interval);
       setProgress(100);
-      
+
       if (!response.ok) throw new Error();
-      
-      toast.success(`Uploaded: ${file.name}`);
+
+      toast.success(`${files.length} file(s) uploaded`);
       onUploadComplete();
     } catch (error) {
-      toast.error(`Failed: ${file.name}`);
+      toast.error(`Failed: ${files[0].name}`);
     } finally {
       clearInterval(interval);
       setUploading(false);
       setProgress(0);
     }
   };
-  
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
-    if (files.length) uploadFile(files[0]);
+    if (files.length) uploadFile(files);
   }, []);
-  
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length) uploadFile(files[0]);
+    if (files.length) uploadFile(files);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
-  
+
   return (
     <div className="border-b bg-muted/20">
       <div
         className={cn(
           "max-w-7xl mx-auto px-4 py-6 transition-all duration-200",
-          isDragging && "scale-[0.99]"
+          isDragging && "scale-[0.99]",
         )}
       >
         <div
@@ -75,9 +77,12 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
             "relative rounded-2xl border-2 border-dashed transition-all cursor-pointer",
             "hover:border-primary/50 hover:bg-accent/30",
             isDragging && "border-primary bg-primary/5 scale-[1.01]",
-            uploading && "pointer-events-none opacity-70"
+            uploading && "pointer-events-none opacity-70",
           )}
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
@@ -85,10 +90,11 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           <input
             ref={fileInputRef}
             type="file"
+            multiple
             className="hidden"
             onChange={handleFileSelect}
           />
-          
+
           <div className="flex flex-col items-center justify-center gap-3 py-12 px-4">
             {uploading ? (
               <>
@@ -108,7 +114,9 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
                 </div>
                 <div className="text-center space-y-1">
                   <p className="font-medium">
-                    {isDragging ? "Drop to upload" : "Drag & drop or click to upload"}
+                    {isDragging
+                      ? "Drop to upload"
+                      : "Drag & drop or click to upload"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Supports images, videos, documents — up to 10MB

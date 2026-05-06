@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-react";
 import { Page } from "../Cms";
 import { pageService } from "@/src/services/PageServices";
 import { PageEditor } from "./page-editor";
@@ -15,6 +15,22 @@ export function PagesSection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isNewPage, setIsNewPage] = useState(false);
+
+  const handleTogglePublish = async (page: Page) => {
+    try {
+      setLoading(true);
+      const res =
+        page.status === "published"
+          ? await pageService.unpublish(page.id)
+          : await pageService.publish(page.id);
+      const updated = res.data?.data ?? res.data ?? res;
+      setPages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEdit = async (id: string) => {
     try {
@@ -164,9 +180,7 @@ export function PagesSection() {
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              page.status === "published"
-                ? "bg-success"
-                : "bg-muted-foreground"
+              page.status === "published" ? "bg-success" : "bg-muted-foreground"
             }`}
           />
           {page.status === "published" ? "Published" : "Draft"}
@@ -231,6 +245,19 @@ export function PagesSection() {
               title="Edit page"
             >
               <Pencil size={15} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleTogglePublish(page)}
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+              title={page.status === "published" ? "Unpublish" : "Publish"}
+            >
+              {page.status === "published" ? (
+                <EyeOff size={15} />
+              ) : (
+                <Eye size={15} />
+              )}
             </Button>
             <Button
               variant="ghost"

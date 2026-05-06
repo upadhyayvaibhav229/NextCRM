@@ -5,14 +5,23 @@ import { asyncHandler } from "@/src/app/lib/utils/asyncHandler";
 
 export const POST = asyncHandler(async (req) => {
   const formData = await req.formData();
-  const file = formData.get("file");
 
-  if (!file) {
-    throw new ApiError(400, "File is required");
+  const files = formData.getAll("files");
+
+  if (!files.length) {
+    throw new ApiError(400, "Files are required");
   }
 
-  const media = await createMedia(file);
+  const media = await createMedia(files);
+
   return Response.json(
-    new ApiResponse(200, media, "Media created successfully"),
+    new ApiResponse(
+      201,
+      media,
+      "Media uploaded successfully"
+    ),
+    {
+      status: 201,
+    }
   );
 });
