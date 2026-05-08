@@ -45,6 +45,7 @@ interface MenuItem {
   url?: string | null;
   parentId?: number | null;
   order?: number;
+  
   children?: MenuItem[];
 }
 
@@ -141,7 +142,7 @@ function SortableMenuItem({
         <button
           {...attributes}
           {...listeners}
-          className="p-0.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing transition-colors touch-none flex-shrink-0"
+          className="p-0.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing transition-colors touch-none shrink-0"
           aria-label="Drag to reorder"
         >
           <GripVertical size={15} />
@@ -151,10 +152,10 @@ function SortableMenuItem({
         {hasChildren ? (
           <ChevronDownIcon
             size={13}
-            className="text-muted-foreground flex-shrink-0"
+            className="text-muted-foreground shrink-0"
           />
         ) : (
-          <span className="w-[13px] flex-shrink-0" />
+          <span className="w-3.25 shrink-0" />
         )}
 
         <div className="flex-1 min-w-0">
@@ -166,13 +167,13 @@ function SortableMenuItem({
           </span>
         </div>
 
-        <span className="px-2 py-0.5 text-xs bg-muted text-muted-foreground flex-shrink-0">
+        <span className="px-2 py-0.5 text-xs bg-muted text-muted-foreground shrink-0">
           {item.type}
         </span>
 
         <button
           onClick={() => onRemove(item.id)}
-          className="p-1 text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+          className="p-1 text-muted-foreground hover:text-destructive transition-colors shrink-0"
         >
           <X size={14} />
         </button>
@@ -185,7 +186,7 @@ function SortableMenuItem({
 function DragGhost({ item }: { item: MenuItem & { depth: number } }) {
   return (
     <div className="flex items-center gap-3 p-3 bg-card border border-primary shadow-xl opacity-95 rounded-sm">
-      <GripVertical size={15} className="text-primary flex-shrink-0" />
+      <GripVertical size={15} className="text-primary shrink-0" />
       <span className="font-medium text-foreground text-sm">{item.label}</span>
       <span className="ml-1 text-xs font-mono text-muted-foreground">
         {item.type === "page" ? `/${item.slug || ""}` : item.url}
@@ -322,6 +323,7 @@ export function MenusSection({ pages }: MenusSectionProps) {
       const draggedUpdated = {
         ...dragged,
         parentId: target.id,
+        
       };
 
       withoutDragged.splice(targetIndex + 1, 0, draggedUpdated);

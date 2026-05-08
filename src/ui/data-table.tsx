@@ -54,6 +54,10 @@ export interface DataTableProps<T> {
     emptyMessage?: string;
     getRowClassName?: (row: T) => string;
     toolbarActions?: React.ReactNode;
+    enableRowSelection?: boolean;
+    selectedRows?: T[];
+    onSelectedRowsChange?: (rows: T[]) => void;
+    getRowId?: (row: T) => string | number;
 }
 
 // --- Active Filters Bar Component ---
@@ -284,7 +288,7 @@ function ColumnFilterDropdown<T>({
 }
 
 // --- Main DataTable Component ---
-export function DataTable<T extends { id: string | number }>({
+export function DataTable<T extends { id?: string | number }>({
     data,
     columns,
     searchPlaceholder = 'Search...',
@@ -294,6 +298,10 @@ export function DataTable<T extends { id: string | number }>({
     emptyMessage = 'No data found.',
     getRowClassName,
     toolbarActions,
+    enableRowSelection = false,
+    selectedRows: externalSelectedRows,
+    onSelectedRowsChange,
+    getRowId = (row) => (row.id ?? JSON.stringify(row)) as string | number,
 }: DataTableProps<T>) {
     const safeData = useMemo(() => (Array.isArray(data) ? data : []), [data]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -302,6 +310,23 @@ export function DataTable<T extends { id: string | number }>({
     const [columnFilters, setColumnFilters] = useState<
         Record<string, Set<string>>
     >({});
+    
+    // Internal selection state if external not provided
+    const [internalSelectedRows, setInternalSelectedRows] = useState<Set<string | number>>(new Set());
+    
+    // Use external state if provided, otherwise use internal
+    const selectedRowIds = externalSelectedRows !== undefined
+        ? new Set(externalSelectedRows.map(row => getRowId(row)))
+        : internalSelectedRows;
+    
+    const setSelectedRowIds = (ids: Set<string | number>) => {
+        if (onSelectedRowsChange) {
+            const selectedRowsArray = safeData.filter(row => ids.has(getRowId(row)));
+            onSelectedRowsChange(selectedRowsArray);
+        } else {
+            setInternalSelectedRows(ids);
+        }
+    };
 
     const handleFilterChange = (key: string, values: Set<string>) => {
         setColumnFilters((prev) => {
@@ -360,6 +385,85 @@ export function DataTable<T extends { id: string | number }>({
         setCurrentPage(Math.max(1, Math.min(page, totalPages)));
     };
 
+    // Row selection handlers
+    const isRowSelected = (row: T) => {
+        return selectedRowIds.has(getRowId(row));
+    };
+
+    const toggleRowSelection = (row: T) => {
+        const rowId = getRowId(row);
+        const newSelection = new Set(selectedRowIds);
+        if (newSelection.has(rowId)) {
+            newSelection.delete(rowId);
+        } else {
+            newSelection.add(rowId);
+        }
+        setSelectedRowIds(newSelection);
+    };
+
+    const toggleAllRowsOnPage = () => {
+        const allPageSelected = paginatedData.every(row => selectedRowIds.has(getRowId(row)));
+        const newSelection = new Set(selectedRowIds);
+        
+        if (allPageSelected) {
+            // Deselect all rows on current page
+            paginatedData.forEach(row => {
+                newSelection.delete(getRowId(row));
+            });
+        } else {
+            // Select all rows on current page
+            paginatedData.forEach(row => {
+                newSelection.add(getRowId(row));
+            });
+        }
+        setSelectedRowIds(newSelection);
+    };
+
+    const toggleAllRowsAcrossPages = () => {
+        const allRowsSelected = filteredData.every(row => selectedRowIds.has(getRowId(row)));
+        if (allRowsSelected) {
+            // Deselect all filtered rows
+            setSelectedRowIds(new Set());
+        } else {
+            // Select all filtered rows
+            const newSelection = new Set(selectedRowIds);
+            filteredData.forEach(row => {
+                newSelection.add(getRowId(row));
+            });
+            setSelectedRowIds(newSelection);
+        }
+    };
+
+    // Get selection state for header checkbox
+    const pageRowCount = paginatedData.length;
+    const selectedOnPageCount = paginatedData.filter(row => selectedRowIds.has(getRowId(row))).length;
+    const isPageAllSelected = pageRowCount > 0 && selectedOnPageCount === pageRowCount;
+    const isPageIndeterminate = selectedOnPageCount > 0 && selectedOnPageCount < pageRowCount;
+    
+    const totalSelectedCount = selectedRowIds.size;
+    const totalFilteredCount = filteredData.length;
+    const isAllFilteredSelected = totalFilteredCount > 0 && totalSelectedCount === totalFilteredCount;
+
+    // Selection column definition
+    const selectionColumn: Column<T> = {
+        key: '_selection',
+        header: '',
+        cell: (row) => (
+            <Checkbox
+                checked={isRowSelected(row)}
+                onCheckedChange={() => toggleRowSelection(row)}
+                onClick={(e) => e.stopPropagation()}
+            />
+        ),
+        className: 'w-12 text-center',
+        filterable: false,
+    };
+
+    // Combine columns with selection column at the beginning if enabled
+    const displayColumns = enableRowSelection 
+        ? [selectionColumn, ...columns]
+        : columns;
+
     return (
         <div className="space-y-4">
             {/* Toolbar */}
@@ -367,7 +471,6 @@ export function DataTable<T extends { id: string | number }>({
                 <div className="flex justify-between flex-1 items-center gap-3">
                     {searchKeys.length > 0 && (
                         <div className="relative flex-1 sm:max-w-md">
-                            {/* <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> */}
                             <Input
                                 type="text"
                                 placeholder={searchPlaceholder}
@@ -385,6 +488,45 @@ export function DataTable<T extends { id: string | number }>({
                 </div>
             </div>
 
+            {/* Selection info bar */}
+            {enableRowSelection && totalSelectedCount > 0 && (
+                <div className="flex items-center justify-between bg-primary/5 px-4 py-2 rounded-lg">
+                    <div className="text-sm text-primary">
+                        {totalSelectedCount} row{totalSelectedCount !== 1 ? 's' : ''} selected
+                    </div>
+                    <div className="flex gap-2">
+                        {totalSelectedCount < totalFilteredCount && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={toggleAllRowsAcrossPages}
+                                className="h-7 text-xs"
+                            >
+                                Select all {totalFilteredCount} rows
+                            </Button>
+                        )}
+                        {totalSelectedCount === totalFilteredCount && totalFilteredCount > 0 && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={toggleAllRowsAcrossPages}
+                                className="h-7 text-xs"
+                            >
+                                Clear all
+                            </Button>
+                        )}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedRowIds(new Set())}
+                            className="h-7 text-xs text-destructive hover:text-destructive"
+                        >
+                            Clear selection
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* Active Filters */}
             <ActiveFiltersBar
                 columns={columns}
@@ -398,8 +540,10 @@ export function DataTable<T extends { id: string | number }>({
                     <Table className="min-w-200">
                         <TableHeader>
                             <TableRow className="border-b bg-muted/50 hover:bg-muted/50">
-                                {columns.map((column) => {
-                                    const isFilterable = column.filterable !== false;
+                                {displayColumns.map((column) => {
+                                    const isFilterable = column.filterable !== false && column.key !== '_selection';
+                                    const isSelectionColumn = column.key === '_selection';
+                                    
                                     return (
                                         <TableHead
                                             key={column.key}
@@ -409,17 +553,62 @@ export function DataTable<T extends { id: string | number }>({
                                             )}
                                         >
                                             <div className="flex items-center gap-2">
-                                                <span>{column.header}</span>
-                                                {isFilterable && (
-                                                    <ColumnFilterDropdown
-                                                        columnKey={column.key}
-                                                        columns={columns}
-                                                        data={safeData}
-                                                        activeFilters={
-                                                            columnFilters[column.key] || new Set()
-                                                        }
-                                                        onFilterChange={handleFilterChange}
-                                                    />
+                                                {isSelectionColumn && enableRowSelection && (
+                                                    <div className="flex items-center gap-1">
+                                                        <Checkbox
+                                                            checked={isPageAllSelected}
+                                                            ref={(ref) => {
+                                                                if (ref) {
+                                                                    (ref as any).indeterminate = isPageIndeterminate;
+                                                                }
+                                                            }}
+                                                            onCheckedChange={toggleAllRowsOnPage}
+                                                        />
+                                                        {totalFilteredCount > pageRowCount && (
+                                                            <Popover>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="h-6 w-6 p-0 ml-1"
+                                                                    >
+                                                                        <ChevronRight className="h-3 w-3" />
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className="w-48 p-2">
+                                                                    <div className="text-sm space-y-2">
+                                                                        <p className="text-muted-foreground">
+                                                                            {totalSelectedCount} of {totalFilteredCount} rows selected
+                                                                        </p>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            className="w-full"
+                                                                            onClick={toggleAllRowsAcrossPages}
+                                                                        >
+                                                                            {isAllFilteredSelected ? 'Clear all' : `Select all ${totalFilteredCount} rows`}
+                                                                        </Button>
+                                                                    </div>
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {!isSelectionColumn && (
+                                                    <>
+                                                        <span>{column.header}</span>
+                                                        {isFilterable && (
+                                                            <ColumnFilterDropdown
+                                                                columnKey={column.key}
+                                                                columns={columns}
+                                                                data={safeData}
+                                                                activeFilters={
+                                                                    columnFilters[column.key] || new Set()
+                                                                }
+                                                                onFilterChange={handleFilterChange}
+                                                            />
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                         </TableHead>
@@ -431,7 +620,7 @@ export function DataTable<T extends { id: string | number }>({
                             {paginatedData.length === 0 ? (
                                 <TableRow>
                                     <TableCell
-                                        colSpan={columns.length}
+                                        colSpan={displayColumns.length}
                                         className="h-32 text-center"
                                     >
                                         <div className="flex flex-col items-center gap-2 text-muted-foreground">
@@ -443,15 +632,16 @@ export function DataTable<T extends { id: string | number }>({
                             ) : (
                                 paginatedData.map((row, index) => (
                                     <TableRow
-                                        key={row.id}
+                                        key={getRowId(row)}
                                         className={cn(
                                             'border-b transition-colors hover:bg-muted/30',
                                             index % 2 === 0 && 'bg-background',
                                             index % 2 === 1 && 'bg-muted/5',
-                                            getRowClassName?.(row)
+                                            getRowClassName?.(row),
+                                            enableRowSelection && isRowSelected(row) && 'bg-primary/5'
                                         )}
                                     >
-                                        {columns.map((column) => (
+                                        {displayColumns.map((column) => (
                                             <TableCell
                                                 key={column.key}
                                                 className={cn(

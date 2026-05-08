@@ -25,48 +25,6 @@ async function ensureUniqueSlug(model, slug, excludeId = null) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// TAG SERVICES
-// ═══════════════════════════════════════════════════════════
-
-export async function getAllTags() {
-  return prisma.tag.findMany({
-    orderBy: { name: "asc" },
-    include: { _count: { select: { posts: true } } },
-  });
-}
-
-export async function getTagById(id) {
-  return prisma.tag.findUnique({
-    where: { id },
-    include: { posts: { select: { id: true, title: true, slug: true } } },
-  });
-}
-
-export async function createTag(input) {
-  const slug = input.slug?.trim()
-    ? generateSlug(input.slug)
-    : generateSlug(input.name);
-  await ensureUniqueSlug(prisma.tag, slug);
-  return prisma.tag.create({
-    data: { name: input.name, slug },
-  });
-}
-
-export async function updateTag(id, input) {
-  const { id: _, ...rest } = input;
-  if (rest.name && !rest.slug) rest.slug = generateSlug(rest.name);
-  if (rest.slug) {
-    rest.slug = generateSlug(rest.slug);
-    await ensureUniqueSlug(prisma.tag, rest.slug, id);
-  }
-  return prisma.tag.update({ where: { id }, data: rest });
-}
-
-export async function deleteTag(id) {
-  return prisma.tag.delete({ where: { id } });
-}
-
-// ═══════════════════════════════════════════════════════════
 // POST SERVICES
 // ═══════════════════════════════════════════════════════════
 
@@ -179,13 +137,32 @@ export async function updatePost(id, input) {
 }
 
 export async function deletePost(id) {
-  return prisma.post.delete({ where: { id } });
+  return prisma.post.delete({
+    where: {
+      id,
+    },
+  });
+}
+
+export async function BulkDeletePosts(ids) {
+  return prisma.post.deleteMany({
+    where: {
+      id: {
+        in: ids.map(Number),
+      },
+    },
+  });
 }
 
 export async function publishPost(id) {
   return prisma.post.update({
-    where: { id },
-    data: { status: "PUBLISHED", publishedAt: new Date() },
+    where: {
+      id,
+    },
+    data: {
+      status: "PUBLISHED",
+      publishedAt: new Date(),
+    },
   });
 }
 
@@ -197,7 +174,11 @@ export async function unpublishPost(id) {
 }
 
 export async function isPostSlugAvailable(slug, excludeId) {
-  const existing = await prisma.post.findUnique({ where: { slug } });
+  const existing = await prisma.post.findUnique({
+    where: {
+      slug,
+    },
+  });
   if (!existing) return true;
   if (excludeId && existing.id === excludeId) return true;
   return false;

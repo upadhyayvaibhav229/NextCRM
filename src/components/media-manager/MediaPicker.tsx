@@ -8,10 +8,20 @@ import {
   DialogTitle,
 } from "@/src/ui/dialog";
 
+interface MediaItem {
+  id: string;
+  mimeType: string;
+  url: string;
+  originalName: string;
+}
 export function MediaPickerModal({
   open,
   onClose,
   onSelect,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSelect: (item: MediaItem) => void;
 }) {
   const [media, setMedia] = useState([]);
 
@@ -36,7 +46,7 @@ export function MediaPickerModal({
         </DialogHeader>
 
         <div className="grid grid-cols-3 md:grid-cols-5 gap-4 max-h-[70vh] overflow-y-auto">
-          {media.map((item) => (
+          {media.map((item: MediaItem) => (
             <button
               key={item.id}
               onClick={() => {
@@ -57,9 +67,7 @@ export function MediaPickerModal({
                 </div>
               )}
 
-              <div className="p-2 text-xs truncate">
-                {item.originalName}
-              </div>
+              <div className="p-2 text-xs truncate">{item.originalName}</div>
             </button>
           ))}
         </div>

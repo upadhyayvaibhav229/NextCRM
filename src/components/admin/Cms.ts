@@ -7,6 +7,7 @@ export interface Page {
   html: string
   css: string
   js: string
+  seoData?: any
 }
 
 export interface MenuItem {

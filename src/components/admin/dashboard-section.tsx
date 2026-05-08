@@ -99,7 +99,7 @@ export function DashboardSection() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-background to-background/95">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-background via-background to-background/95">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-sidebar-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">Loading dashboard...</p>
@@ -110,7 +110,7 @@ export function DashboardSection() {
 
   if (error || !dashboardData) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background via-background to-background/95">
+      <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-background via-background to-background/95">
         <div className="text-center">
           <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle size={32} className="text-red-500" />
@@ -268,13 +268,13 @@ export function DashboardSection() {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="p-8 bg-gradient-to-br from-background via-background to-background/95 min-h-screen"
+      className="p-8 bg-linear-to-br from-background via-background to-background/95 min-h-screen"
     >
       {/* Header Section */}
       <motion.div variants={itemVariants} className="mb-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="font-sans text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
+            <h1 className="font-sans text-3xl font-bold bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2">
               Dashboard
             </h1>
             <div className="flex items-center gap-2">
@@ -322,11 +322,11 @@ export function DashboardSection() {
               className="group relative bg-card border border-border rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300"
             >
               <div
-                className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                className={`absolute inset-0 bg-linear-to-br ${stat.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
               />
               <div className="relative p-5">
                 <div className="flex items-start justify-between mb-3">
-                  <div className={`p-2 rounded-xl bg-gradient-to-br ${stat.color} ring-1 ring-border`}>
+                  <div className={`p-2 rounded-xl bg-linear-to-br ${stat.color} ring-1 ring-border`}>
                     <Icon size={18} className={stat.iconColor} />
                   </div>
                 </div>
@@ -429,7 +429,7 @@ export function DashboardSection() {
                   initial={{ width: 0 }}
                   animate={{ width: `${completionPercentage}%` }}
                   transition={{ duration: 1, delay: 0.5 }}
-                  className="h-full bg-gradient-to-r from-green-500 to-green-500/60 rounded-full"
+                  className="h-full bg-linear-to-r from-green-500 to-green-500/60 rounded-full"
                 />
               </div>
               <p className="text-xs text-muted-foreground mt-2">
@@ -487,7 +487,7 @@ export function DashboardSection() {
               Latest changes to your content
             </p>
           </div>
-          <div className="divide-y divide-border max-h-[400px] overflow-y-auto">
+          <div className="divide-y divide-border max-h-100 overflow-y-auto">
             {recentActivity.length > 0 ? (
               recentActivity.map((activity, idx) => (
                 <motion.div
@@ -595,7 +595,7 @@ export function DashboardSection() {
                 initial={{ width: 0 }}
                 animate={{ width: `${completionPercentage}%` }}
                 transition={{ duration: 1, delay: 0.8 }}
-                className="h-full bg-gradient-to-r from-sidebar-primary to-sidebar-primary/60 rounded-full"
+                className="h-full bg-linear-to-r from-sidebar-primary to-sidebar-primary/60 rounded-full"
               />
             </div>
             <p className="text-xs text-muted-foreground mt-2">

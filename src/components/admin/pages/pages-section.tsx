@@ -21,8 +21,8 @@ export function PagesSection() {
       setLoading(true);
       const res =
         page.status === "published"
-          ? await pageService.unpublish(page.id)
-          : await pageService.publish(page.id);
+          ? await pageService.unpublish(Number(page.id))
+          : await pageService.publish(Number(page.id));
       const updated = res.data?.data ?? res.data ?? res;
       setPages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
     } catch (err: any) {
@@ -311,6 +311,7 @@ export function PagesSection() {
         data={pages}
         columns={columns}
         searchPlaceholder="Search pages..."
+        enableRowSelection={true}
         searchKeys={["title", "slug"]}
         pageSize={10}
         emptyMessage="No pages found. Create your first page to get started."

@@ -102,7 +102,7 @@ export function PostsSection() {
         tagIds: tagIds ?? [],
       };
 
-      let saved;
+      let saved : any;
       if (isNewPost) {
         // Remove the temp id — backend will generate real one
         const { id, ...createPayload } = payload;
@@ -226,7 +226,7 @@ export function PostsSection() {
     {
       key: "publishedAt",
       header: "Published",
-      sortable: true,
+      // sortable: true,
       filterable: false,
       cell: (row) => (
         <span className="font-mono text-xs text-muted-foreground">

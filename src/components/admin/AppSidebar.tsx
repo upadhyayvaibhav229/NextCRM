@@ -17,6 +17,8 @@ import {
   PlusCircle,
   ChevronDown,
   Layout,
+  Globe2,
+  Globe,
 } from "lucide-react";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";
@@ -88,7 +90,7 @@ const navItems: NavItem[] = [
   {
     id: "pages",
     label: "Pages",
-    icon: FileText,
+    icon: Globe,
     description: "Manage content",
   },
   {
@@ -177,7 +179,7 @@ export function Sidebar({
         >
           {/* Active indicator */}
           {isActive && !hasChildren && (
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-sidebar-primary to-sidebar-primary/60 rounded-r-full glow-accent" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-linear-to-b from-sidebar-primary to-sidebar-primary/60 rounded-r-full glow-accent" />
           )}
 
           {/* Icon */}
@@ -261,19 +263,19 @@ export function Sidebar({
       />
 
       <aside
-        className={`fixed lg:relative flex flex-col h-screen bg-gradient-to-b from-sidebar to-sidebar/95 backdrop-blur-sm border-r border-sidebar-border transition-all duration-300 ease-in-out z-50 ${
+        className={`fixed lg:relative flex flex-col h-screen bg-linear-to-b from-sidebar to-sidebar/95 backdrop-blur-sm border-r border-sidebar-border transition-all duration-300 ease-in-out z-50 ${
           collapsed ? "w-20" : "w-72"
         }`}
       >
         {/* Logo Section */}
         <div className="shrink-0 flex items-center h-16 px-5 border-b border-sidebar-border/50 bg-linear-to-r from-sidebar/50 to-transparent">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-primary/60 flex items-center justify-center shadow-lg">
+            <div className="w-8 h-8 rounded-lg bg-linear-to-br from-sidebar-primary to-sidebar-primary/60 flex items-center justify-center shadow-lg">
               <Sparkles size={18} className="text-white" />
             </div>
             {!collapsed && (
               <div className="overflow-hidden">
-                <span className="font-sans font-bold text-xl bg-gradient-to-r from-sidebar-foreground to-sidebar-foreground/80 bg-clip-text text-transparent">
+                <span className="font-sans font-bold text-xl bg-linear-to-r from-sidebar-foreground to-sidebar-foreground/80 bg-clip-text text-transparent">
                   CMS Admin
                 </span>
                 <div className="text-[10px] text-sidebar-foreground/40 font-mono">
@@ -296,7 +298,7 @@ export function Sidebar({
         </div>
 
         {/* Bottom Section - Made sticky/always visible */}
-        <div className="shrink-0 border-t border-sidebar-border/50 p-3 space-y-3 bg-gradient-to-b from-transparent to-sidebar/95">
+        <div className="shrink-0 border-t border-sidebar-border/50 p-3 space-y-3 bg-linear-to-b from-transparent to-sidebar/95">
           <div className="space-y-1">
             {/* Visit Site */}
             <a
@@ -327,7 +329,7 @@ export function Sidebar({
               }`}
             >
               <div className="relative">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sidebar-primary/30 to-sidebar-primary/10 flex items-center justify-center ring-2 ring-sidebar-primary/20 group-hover:ring-sidebar-primary/40 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-sidebar-primary/30 to-sidebar-primary/10 flex items-center justify-center ring-2 ring-sidebar-primary/20 group-hover:ring-sidebar-primary/40 transition-all">
                   <User size={18} className="text-sidebar-primary" />
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full ring-2 ring-sidebar" />

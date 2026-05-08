@@ -108,3 +108,15 @@ export async function updateCategory(id, input) {
 export async function deleteCategory(id) {
   return prisma.category.delete({ where: { id } });
 }
+
+
+
+export async function BulkDeleteCategories(id) {
+  return prisma.category.deleteMany({
+    where: {
+      id: {
+        in: id.map(Number),
+      },
+    }
+  })
+}

@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useMenusPreview } from "@/src/hooks/useMenusPreview";
+import { Button } from "@/src/ui/button";
 
 interface Page {
   id: string;
@@ -160,6 +161,15 @@ export default function PreviewPage() {
         <div className="text-center">
           <h1 className="text-6xl font-bold text-gray-900">404</h1>
           <p className="mt-3 text-lg text-gray-600">Page not found: /{slug}</p>
+          <Button
+            className="mt-4"
+            onClick={() => {
+              router.back();
+            }}
+          >
+            Go back
+          </Button>
+            
         </div>
       </div>
     );

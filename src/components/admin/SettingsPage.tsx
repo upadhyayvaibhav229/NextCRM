@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/src/ui/button";
 import { MediaPickerModal } from "../media-manager/MediaPicker";
+import { Page } from "./Cms";
 
 // ─── Image Upload Component (Simplified - No URL input) ─────────────────────
 
@@ -67,7 +68,7 @@ function ImageUpload({ label, value, onChange, onUpload }: ImageUploadProps) {
     <div className="space-y-4">
       {/* Preview Card */}
       {value && (
-        <div className="relative flex items-center gap-3 border rounded-lg p-3 bg-card w-fit min-w-[280px]">
+        <div className="relative flex items-center gap-3 border rounded-lg p-3 bg-card w-fit min-w-70">
           <img
             src={value}
             alt={label}
@@ -375,7 +376,7 @@ export function SettingsPage({
                       className="w-full border rounded-md px-3 py-2 text-sm"
                     >
                       <option value="">Select Homepage</option>
-                      {pages.map((page) => (
+                      {pages.map((page: Page) => (
                         <option key={page.id} value={page.id}>
                           {page.title}
                         </option>
@@ -395,7 +396,7 @@ export function SettingsPage({
                       className="w-full border rounded-md px-3 py-2 text-sm"
                     >
                       <option value="">Select Posts Page</option>
-                      {pages.map((page) => (
+                      {pages.map((page: Page) => (
                         <option key={page.id} value={page.id}>
                           {page.title}
                         </option>

@@ -10,7 +10,9 @@ interface PageEditorHeaderProps {
   onChange: (page: Page) => void;
   onCancel: () => void;
   onSave: () => void;
+  activeTab: "general" | "seo";
   isSaving: boolean;
+  
 }
 
 export function PageEditorHeader({
@@ -58,16 +60,16 @@ export function PageEditorHeader({
             <ArrowLeft size={16} />
             All Pages
           </button>
-          <span className="text-border">|</span>
-          <span className="text-sm font-semibold text-foreground">
+          {/* <span className="text-border">|</span> */}
+          {/* <span className="text-sm font-semibold text-foreground">
             Edit Page
-          </span>
-          <button
+          </span> */}
+          {/* <button
             onClick={onCancel}
             className="ml-2 px-3 py-1 text-sm text-primary border border-primary hover:bg-primary hover:text-primary-foreground transition-colors rounded"
           >
             Add Page
-          </button>
+          </button> */}
         </div>
 
         <div className="flex items-center gap-2">

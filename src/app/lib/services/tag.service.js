@@ -68,3 +68,14 @@ export async function updateTag(id, input) {
 export async function deleteTag(id) {
   return prisma.tag.delete({ where: { id } });
 }
+
+
+export async function BulkDeleteTags(id) {
+  return prisma.tag.deleteMany({
+    where: {
+      id: {
+        in: id.map(Number),
+      },
+    }
+  })
+}

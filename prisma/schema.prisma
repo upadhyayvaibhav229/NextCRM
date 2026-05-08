@@ -23,6 +23,7 @@ model Page {
   seoData   Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  featuredImage String?
 }
 
 enum ContentStatus {

@@ -56,7 +56,7 @@ export function PageEditor({
   };
 
   const handlePublish = async () => {
-    const updatedPage = {
+    const updatedPage : Page = {
       ...page,
       status: "published",
     };
@@ -90,7 +90,7 @@ export function PageEditor({
         onTabChange={setActiveTab}
       />
 
-      <div className="flex flex-1 gap-6 p-6 max-w-[1500px] w-full mx-auto">
+      <div className="flex flex-1 gap-6 p-6 max-w-375 w-full mx-auto">
         <div className="flex-1 flex flex-col gap-4 min-w-0">
           {activeTab === "general" && (
             <PageEditorContent page={page} onChange={onChange} />
@@ -113,7 +113,7 @@ export function PageEditor({
           )}
         </div>
 
-        <div className="w-[380px] shrink-0 flex flex-col gap-4">
+        <div className="w-95 shrink-0 flex flex-col gap-4">
           {/* Toggle between Page Settings and SEO */}
           <div className="flex gap-2 border-b border-border">
             <button

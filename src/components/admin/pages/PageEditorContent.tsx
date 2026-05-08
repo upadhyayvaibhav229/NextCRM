@@ -24,6 +24,8 @@ import {
   AlignJustify,
   Minus,
 } from "lucide-react";
+import { Button } from "@/src/ui/button";
+import { MediaPickerModal } from "../../media-manager/MediaPicker";
 
 interface PageEditorContentProps {
   page: Page;
@@ -304,7 +306,7 @@ function CodeEditor({
       </div>
 
       {/* Monaco editor */}
-      <div className="h-[500px]">
+      <div className="h-125">
         <Editor
           height="100%"
           language={languageMap[activeCodeTab]}
@@ -329,8 +331,22 @@ function CodeEditor({
 
 export function PageEditorContent({ page, onChange }: PageEditorContentProps) {
   const [activeTab, setActiveTab] = useState<"visual" | "code">("visual");
+    const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   return (
+      <>
+      <div className="">
+
+          <Button
+        type="button"
+        variant="default"
+        size="sm"
+        className=" top-4 right-4 z-50"
+        onClick={() => setShowMediaPicker(true)}
+      >
+        Add Media
+      </Button>
+      </div>
     <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
       {/* Visual | Code top-level tabs — aligned right like WordPress */}
       <div className="flex justify-end border-b border-border bg-card px-3">
@@ -347,7 +363,9 @@ export function PageEditorContent({ page, onChange }: PageEditorContentProps) {
             {tab}
           </button>
         ))}
+     
       </div>
+
 
       {/* Render active tab */}
       {activeTab === "visual" ? (
@@ -355,6 +373,22 @@ export function PageEditorContent({ page, onChange }: PageEditorContentProps) {
       ) : (
         <CodeEditor page={page} onChange={onChange} />
       )}
-    </div>
+    </div> 
+
+    <MediaPickerModal
+            open={showMediaPicker}
+            onClose={() => setShowMediaPicker(false)}
+            onSelect={(media: any) => {
+              const mediaHtml = media.mimeType.startsWith("image/")
+                ? `<img src="${media.url}" alt="${media.altText || ""}" />`
+                : `<a href="${media.url}" target="_blank">${media.originalName}</a>`;
+    
+              onChange({
+                ...page,
+                html: (page.html || "") + mediaHtml,
+              });
+            }}
+          />
+      </>
   );
 }

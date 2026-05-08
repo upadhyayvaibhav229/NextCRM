@@ -123,6 +123,16 @@ export async function deletePage(id) {
   });
 }
 
+export async function BulkDeletePages(ids) {
+  return prisma.page.deleteMany({
+    where: {
+      id: {
+        in: ids.map(Number),
+      },
+    },
+  });
+}
+
 // PUBLISH page
 export async function publishPage(id) {
   return prisma.page.update({
