@@ -5,11 +5,15 @@ import { useEffect, useState } from "react";
 interface SocialLink {
   platform: string;
   url: string;
+  icon?: string;
 }
 
 interface FooterSettings {
+  footerLogo: string;
   footerBrandTitle: string;
   footerDescription: string;
+  footerAddress: string;
+  footerEmail: string;
   footerCopyright: string;
   socialLinks: SocialLink[];
 }
@@ -28,9 +32,12 @@ interface UseFooterReturn {
 }
 
 const DEFAULT_SETTINGS: FooterSettings = {
+  footerLogo: "",
   footerBrandTitle: "My Website",
   footerDescription: "",
-  footerCopyright: `© ${new Date().getFullYear()} My Website. All rights reserved.`,
+  footerAddress: "",
+  footerEmail: "",
+  footerCopyright: `Â© ${new Date().getFullYear()} My Website. All rights reserved.`,
   socialLinks: [],
 };
 
@@ -67,9 +74,8 @@ export function useFooter(): UseFooterReturn {
         }
 
         if (menusData.success && menusData.data) {
-          // only footer column menus
-          const footerCols = menusData.data.filter((m: Menu) =>
-            ["footer-1", "footer-2", "footer-3"].includes(m.location)
+          const footerCols = menusData.data.filter(
+            (m: Menu) => m.location === "footer"
           );
           setFooterMenus(footerCols);
         }
@@ -85,3 +91,4 @@ export function useFooter(): UseFooterReturn {
 
   return { settings, footerMenus, loading };
 }
+

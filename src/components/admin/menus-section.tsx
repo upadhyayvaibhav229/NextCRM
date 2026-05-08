@@ -227,9 +227,9 @@ export function MenusSection({ pages }: MenusSectionProps) {
   // ── Create menu form state ─────────────────────────────
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newMenuName, setNewMenuName] = useState("");
-  const [newMenuLocation, setNewMenuLocation] = useState<
-    "header" | "footer" | "footer-1" | "footer-2" | "footer-3"
-  >("header");
+  const [newMenuLocation, setNewMenuLocation] = useState<"header" | "footer">(
+    "header",
+  );
 
   // ── DnD state ─────────────────────────────────────────
   const [activeId, setActiveId] = useState<number | null>(null);
@@ -520,10 +520,7 @@ ${itemsCode}
                   className="w-full p-2 mb-3 text-sm bg-input text-foreground border border-border outline-none focus:border-primary"
                 >
                   <option value="header">Header</option>
-                  <option value="footer">Footer (legacy)</option>
-                  <option value="footer-1">Footer Column 1</option>
-                  <option value="footer-2">Footer Column 2</option>
-                  <option value="footer-3">Footer Column 3</option>
+                  <option value="footer">Footer</option>
                 </select>
               </div>
               <div className="flex gap-2">

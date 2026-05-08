@@ -2,7 +2,7 @@ import { prisma } from "../prisma.js";
 
 // ─── Constants ────────────────────────────────────────────
 
-export const VALID_LOCATIONS = ["header", "footer", "footer-1", "footer-2", "footer-3"]
+export const VALID_LOCATIONS = ["header", "footer"]
 export const VALID_ITEM_TYPES = ["page", "custom"];
 
 // ─── Validators ───────────────────────────────────────────

@@ -13,8 +13,18 @@ interface Page {
   html: string;
   css: string;
   js: string;
-  seoData?: any; // ← add this
+  seoData?: any;
 }
+
+const DEFAULT_FOOTER_SETTINGS = {
+  footerLogo: "",
+  footerBrandTitle: "",
+  footerDescription: "",
+  footerAddress: "",
+  footerEmail: "",
+  footerCopyright: "",
+  socialLinks: [],
+};
 
 export default function PreviewPage() {
   const params = useParams<{ slug: string }>();
@@ -25,7 +35,7 @@ export default function PreviewPage() {
   const [notFound, setNotFound] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [settings, setSettings] = useState<any>(null);
-  const [footerSettings, setFooterSettings] = useState<any>(null);
+  const [footerSettings, setFooterSettings] = useState<any>(DEFAULT_FOOTER_SETTINGS);
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [isPostsPage, setIsPostsPage] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
@@ -33,8 +43,8 @@ export default function PreviewPage() {
     const fetchMenus = async () => {
       const res = await fetch("/api/menus");
       const data = await res.json();
-      const cols = (data.data ?? []).filter((m: any) =>
-        ["footer-1", "footer-2", "footer-3"].includes(m.location),
+      const cols = (data.data ?? []).filter(
+        (m: any) => m.location === "footer",
       );
       setFooterMenus(cols);
     };
@@ -44,24 +54,6 @@ export default function PreviewPage() {
   // Use the menus hook - no hardcoded menus!
   const { menus, loading: menusLoading } = useMenusPreview();
 
-  // global settings api call
-  // useEffect(() => {
-  //   const fetchSettings = async () => {
-  //     try {
-  //       const res = await fetch("/api/setting");
-  //       const data = await res.json();
-
-  //       if (data.success) {
-  //         setSettings(data.data);
-  //       }
-  //     } catch (err) {
-  //       console.error("Failed to load settings:", err);
-  //     }
-  //   };
-
-  //   fetchSettings();
-  // }, []);
-
   // footer settings api call
   useEffect(() => {
     const fetchFooterSettings = async () => {
@@ -69,7 +61,10 @@ export default function PreviewPage() {
       const data = await res.json();
 
       if (data.success) {
-        setFooterSettings(data.data.footer);
+        setFooterSettings({
+          ...DEFAULT_FOOTER_SETTINGS,
+          ...(data.data?.footer ?? {}),
+        });
       }
     };
 
@@ -111,7 +106,7 @@ export default function PreviewPage() {
           setPage(data.data);
           setNotFound(false);
 
-          // ← check if this is the posts page
+          // check if this is the posts page
           if (
             siteSettings?.postsPageId &&
             data.data.id === siteSettings.postsPageId
@@ -222,6 +217,82 @@ export default function PreviewPage() {
       })
       .join("");
   };
+
+  const renderFooterColumns = (menus: any[]): string =>
+    menus
+      .flatMap((menu) => buildTree(menu.items))
+      .map((section: any) => {
+        const links = (section.children || [])
+          .map((child: any) => {
+            const href =
+              child.type === "page" && child.slug
+                ? `/${child.slug}`
+                : child.url || "#";
+
+            return `<li><a href="${href}" class="footer-col-link" onclick="handleNav(event,'${href}')">${child.label}</a></li>`;
+          })
+          .join("");
+
+        if (!links) return "";
+
+        return `
+          <div class="footer-col">
+            <h4 class="footer-col-title">${section.label}</h4>
+            <ul class="footer-col-links">${links}</ul>
+          </div>`;
+      })
+      .join("");
+
+  const footer = {
+    ...DEFAULT_FOOTER_SETTINGS,
+    ...footerSettings,
+    footerBrandTitle:
+      footerSettings.footerBrandTitle || settings.siteName || "My Website",
+    footerCopyright:
+      footerSettings.footerCopyright ||
+      `© ${new Date().getFullYear()} ${settings.siteName}. All rights reserved.`,
+  };
+
+  const renderFooterBrand = (): string => `
+    <div class="footer-brand">
+      ${
+        footer.footerLogo
+          ? `<a href="/" onclick="handleNav(event,'/')"><img src="${footer.footerLogo}" alt="${footer.footerBrandTitle}" class="footer-logo" /></a>`
+          : ""
+      }
+      ${
+        footer.footerBrandTitle
+          ? `<a href="/" class="footer-brand-name" onclick="handleNav(event,'/')">${footer.footerBrandTitle}</a>`
+          : ""
+      }
+      ${
+        footer.footerDescription
+          ? `<p class="footer-brand-desc">${footer.footerDescription}</p>`
+          : ""
+      }
+    </div>`;
+
+  const renderFooterContact = (): string => `
+    <div class="footer-contact">
+      <h4 class="footer-col-title">Contact Us</h4>
+      ${footer.footerAddress ? `<p class="footer-contact-text">${footer.footerAddress.replace(/\n/g, "<br>")}</p>` : ""}
+      ${footer.footerEmail ? `<a href="mailto:${footer.footerEmail}" class="footer-contact-link">${footer.footerEmail}</a>` : ""}
+      ${
+        footer.socialLinks?.length
+          ? `<div class="footer-social">
+              ${footer.socialLinks
+                .filter((link: any) => link.url)
+                .map(
+                  (link: any) => `
+                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="footer-social-link" aria-label="${link.platform}">
+                      ${link.icon ? `<img src="${link.icon}" class="footer-social-icon" alt="${link.platform}" />` : `<span>${link.platform}</span>`}
+                    </a>`,
+                )
+                .join("")}
+            </div>`
+          : ""
+      }
+    </div>`;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   // ── If this is the posts page — render posts listing ──
   if (isPostsPage && page && settings) {
@@ -310,17 +381,28 @@ export default function PreviewPage() {
     .read-more{font-size:.875rem;color:#111827;font-weight:600;text-decoration:none}
     .read-more:hover{text-decoration:underline}
     .empty{text-align:center;padding:4rem 1rem;color:#6b7280}
-    .cms-footer{margin-top:auto;background:#111827;color:#9ca3af}
+    .cms-footer{margin-top:auto;background:#fff;color:#6c757d;border-top:1px solid #e5e7eb}
     .cms-footer-inner{width:min(1200px,calc(100% - 2rem));margin:0 auto;padding:3rem 0 1.5rem}
-    .footer-top{display:grid;grid-template-columns:1fr 2fr;gap:3rem;margin-bottom:2rem}
-    .footer-brand-name{color:#fff;text-decoration:none;font-size:1.125rem;font-weight:700}
-    .footer-brand-desc{font-size:.875rem;color:#6b7280;margin:.5rem 0 0}
-    .footer-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem}
-    .footer-col-title{color:#fff;font-size:.875rem;font-weight:600;margin:0 0 1rem;text-transform:uppercase;letter-spacing:.05em}
+    .footer-top{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) minmax(260px,2fr);gap:3rem;margin-bottom:2rem;align-items:start}
+    .footer-brand{display:flex;flex-direction:column;align-items:flex-start}
+    .footer-logo{max-width:140px;height:auto;margin-bottom:1rem}
+    .footer-brand-name{color:#111827;text-decoration:none;font-size:1.125rem;font-weight:700;margin-bottom:0.5rem}
+    .footer-brand-desc{font-size:.875rem;color:#6c757d;margin:0;line-height:1.5}
+    .footer-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem;width:100%}
+    .footer-col-title{color:#111827;font-size:.875rem;font-weight:600;margin:0 0 1rem;text-transform:uppercase;letter-spacing:.05em}
     .footer-col-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
-    .footer-col-link{color:#6b7280;text-decoration:none;font-size:.875rem;transition:color .15s}
-    .footer-col-link:hover{color:#fff}
-    .footer-bottom{border-top:1px solid #1f2937;padding-top:1.5rem;text-align:center;font-size:.8rem;color:#4b5563}
+    .footer-col-link{color:#6c757d;text-decoration:none;font-size:.875rem;transition:color .15s}
+    .footer-col-link:hover{color:#111827}
+    .footer-contact{display:flex;flex-direction:column;align-items:flex-start}
+    .footer-contact-text{font-size:.875rem;color:#6c757d;margin:0 0 0.5rem;line-height:1.5}
+    .footer-contact-link{color:#6c757d;text-decoration:none;font-size:.875rem;margin-bottom:1rem;transition:color .15s}
+    .footer-contact-link:hover{color:#111827}
+    .footer-social{display:flex;gap:1rem;margin-top:0.5rem}
+    .footer-social-link{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;transition:opacity .15s}
+    .footer-social-link:hover{opacity:0.8}
+    .footer-social-icon{width:20px;height:20px;object-fit:contain}
+    .footer-bottom{border-top:1px solid #e5e7eb;padding-top:1.5rem;text-align:center;font-size:.75rem;color:#9ca3af}
+@media (max-width: 900px){.footer-top{grid-template-columns:1fr;gap:2rem}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
   </style>
 </head>
 <body>
@@ -346,35 +428,14 @@ export default function PreviewPage() {
   <footer class="cms-footer">
     <div class="cms-footer-inner">
       <div class="footer-top">
-        <div class="footer-brand">
-          <a href="/" class="footer-brand-name" onclick="handleNav(event,'/')">${settings.siteName}</a>
-          ${footerSettings?.footerDescription ? `<p class="footer-brand-desc">${footerSettings.footerDescription}</p>` : ""}
-        </div>
+        ${renderFooterBrand()}
+        ${renderFooterContact()}
         <div class="footer-cols">
-          ${footerMenus
-            .sort((a, b) => a.location.localeCompare(b.location))
-            .map(
-              (menu) => `
-            <div class="footer-col">
-              <h4 class="footer-col-title">${menu.name}</h4>
-              <ul class="footer-col-links">
-                ${menu.items
-                  .map((item: any) => {
-                    const href =
-                      item.type === "page" && item.slug
-                        ? `/${item.slug}`
-                        : item.url || "#";
-                    return `<li><a href="${href}" class="footer-col-link" onclick="handleNav(event,'${href}')">${item.label}</a></li>`;
-                  })
-                  .join("")}
-              </ul>
-            </div>`,
-            )
-            .join("")}
+          ${renderFooterColumns(footerMenus)}
         </div>
       </div>
       <div class="footer-bottom">
-        <p>${footerSettings?.footerCopyright || `© ${new Date().getFullYear()} ${settings.siteName}. All rights reserved.`}</p>
+        <p>${footer.footerCopyright}</p>
       </div>
     </div>
   </footer>
@@ -516,7 +577,7 @@ export default function PreviewPage() {
 /* Remove the gap-based offset */
 .cms-submenu {
   position: absolute;
-  top: 100%;          /* ← was calc(100% + 6px) */
+  top: 100%;          /* was calc(100% + 6px) */
   left: 0;
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -525,10 +586,10 @@ export default function PreviewPage() {
   list-style: none;
   margin: 0;
   padding: 0.375rem;
-  padding-top: 10px;   /* ← visual gap via padding, not margin */
+  padding-top: 10px;   /* visual gap via padding, not margin */
   opacity: 0;
   visibility: hidden;
-  transform: translateY(0);  /* ← remove the translateY so no actual gap */
+  transform: translateY(0);  /* remove the translateY so no actual gap */
   transition: opacity 0.18s ease, visibility 0.18s;
   pointer-events: none;
   z-index: 200;
@@ -601,21 +662,28 @@ export default function PreviewPage() {
     .cms-page-wrapper { flex: 1; min-height: calc(100vh - 140px); }
 
     // footer
- .cms-footer{margin-top:auto;background:#111827;color:#9ca3af}
+ .cms-footer{margin-top:auto;background:#fff;color:#6c757d;border-top:1px solid #e5e7eb}
 .cms-footer-inner{width:min(1200px,calc(100% - 2rem));margin:0 auto;padding:3rem 0 1.5rem}
-.footer-top{display:grid;grid-template-columns:1fr 2fr;gap:3rem;margin-bottom:2rem}
-.footer-brand{display:flex;flex-direction:column;align-items:center}
-.footer-brand-name{color:black;text-decoration:none ;font-size:1.125rem;font-weight:700}
-.footer-brand-desc{font-size:.875rem;color:#6b7280;margin:.5rem 0 0}
-.footer-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem}
-.footer-col-title{color:black;font-size:.875rem;font-weight:600;margin:0 0 1rem;text-transform:uppercase;letter-spacing:.05em}
+.footer-top{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) minmax(260px,2fr);gap:3rem;margin-bottom:2rem;align-items:start}
+.footer-brand{display:flex;flex-direction:column;align-items:flex-start}
+.footer-logo{max-width:140px;height:auto;margin-bottom:1rem}
+.footer-brand-name{color:#111827;text-decoration:none ;font-size:1.125rem;font-weight:700;margin-bottom:0.5rem}
+.footer-brand-desc{font-size:.875rem;color:#6c757d;margin:0;line-height:1.5}
+.footer-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem;width:100%}
+.footer-col-title{color:#111827;font-size:.875rem;font-weight:600;margin:0 0 1rem;text-transform:uppercase;letter-spacing:.05em}
 .footer-col-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
-.footer-col-link{color:#6b7280;text-decoration:none;font-size:.875rem;transition:color .15s}
-.footer-col-link:hover{color:#fff}
-.footer-social{display:flex;gap:.75rem;margin-top:1rem}
-.footer-social-link{color:#6b7280;transition:color .15s}
-.footer-social-link:hover{color:#fff}
-.footer-bottom{border-top:1px solid #1f2937;padding-top:1.5rem;text-align:center;font-size:.8rem;color:#4b5563}
+.footer-col-link{color:#6c757d;text-decoration:none;font-size:.875rem;transition:color .15s}
+.footer-col-link:hover{color:#111827}
+.footer-contact{display:flex;flex-direction:column;align-items:flex-start}
+.footer-contact-text{font-size:.875rem;color:#6c757d;margin:0 0 0.5rem;line-height:1.5}
+.footer-contact-link{color:#6c757d;text-decoration:none;font-size:.875rem;margin-bottom:1rem;transition:color .15s}
+.footer-contact-link:hover{color:#111827}
+.footer-social{display:flex;gap:1rem;margin-top:0.5rem}
+.footer-social-link{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;transition:opacity .15s}
+.footer-social-link:hover{opacity:0.8}
+.footer-social-icon{width:20px;height:20px;object-fit:contain}
+.footer-bottom{border-top:1px solid #e5e7eb;padding-top:1.5rem;text-align:center;font-size:.75rem;color:#9ca3af}
+@media (max-width: 900px){.footer-top{grid-template-columns:1fr;gap:2rem}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
 
     ${globalCss}
     ${page.css}
@@ -643,57 +711,14 @@ export default function PreviewPage() {
 <footer class="cms-footer">
   <div class="cms-footer-inner">
     <div class="footer-top">
-      <div class="footer-brand">
-  <img src="${settings.logo}" alt="${settings.siteName}" style="width:200px;" />
-
-  ${
-    footerSettings.socialLinks?.length
-      ? `
-      <div class="footer-social">
-        ${footerSettings.socialLinks
-          .map(
-            (link: any) => `
-              <a
-                href="${link.url}"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="footer-social-link"
-              >
-                ${link.platform}
-              </a>
-            `,
-          )
-          .join("")}
-      </div>
-    `
-      : ""
-  }
-</div>
+      ${renderFooterBrand()}
+      ${renderFooterContact()}
       <div class="footer-cols">
-        ${footerMenus
-          .sort((a, b) => a.location.localeCompare(b.location))
-          .map(
-            (menu) => `
-            <div class="footer-col">
-              <h4 class="footer-col-title">${menu.name}</h4>
-              <ul class="footer-col-links">
-                ${menu.items
-                  .map((item: any) => {
-                    const href =
-                      item.type === "page" && item.slug
-                        ? `/${item.slug}`
-                        : item.url || "#";
-                    return `<li><a href="${href}" class="footer-col-link" onclick="handleNav(event,'${href}')">${item.label}</a></li>`;
-                  })
-                  .join("")}
-              </ul>
-            </div>`,
-          )
-          .join("")}
+        ${renderFooterColumns(footerMenus)}
       </div>
     </div>
     <div class="footer-bottom">
-      <p>${footerSettings.footerCopyright || `© ${new Date().getFullYear()} ${footerSettings.siteName}. All rights reserved.`}</p>
+        <p>${footer.footerCopyright}</p>
     </div>
   </div>
 </footer>

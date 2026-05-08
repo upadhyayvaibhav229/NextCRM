@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Save, Loader2, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, ExternalLink, ImageIcon } from "lucide-react";
+import { MediaPickerModal } from "../media-manager/MediaPicker";
 
 const SOCIAL_PLATFORMS = [
   { value: "facebook", label: "Facebook", icon: "f" },
@@ -15,19 +16,26 @@ const SOCIAL_PLATFORMS = [
 interface SocialLink {
   platform: string;
   url: string;
+  icon?: string;
 }
 
 interface FooterSettings {
+  footerLogo: string;
   footerBrandTitle: string;
   footerDescription: string;
+  footerAddress: string;
+  footerEmail: string;
   footerCopyright: string;
   socialLinks: SocialLink[];
 }
 
 const DEFAULT_SETTINGS: FooterSettings = {
+  footerLogo: "",
   footerBrandTitle: "My Website",
   footerDescription: "",
-  footerCopyright: `© ${new Date().getFullYear()} My Website. All rights reserved.`,
+  footerAddress: "",
+  footerEmail: "",
+  footerCopyright: `Â© ${new Date().getFullYear()} My Website. All rights reserved.`,
   socialLinks: [],
 };
 
@@ -37,8 +45,11 @@ export function FooterSettingsSection() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [mediaTarget, setMediaTarget] = useState<
+    { type: "footerLogo" } | { type: "socialIcon"; index: number } | null
+  >(null);
 
-  // ─── Fetch existing footer settings ──────────────────────
+  // â”€â”€â”€ Fetch existing footer settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -49,7 +60,7 @@ export function FooterSettingsSection() {
           setSettings({ ...DEFAULT_SETTINGS, ...data.data.footer });
         }
       } catch {
-        // no settings yet — use defaults
+        // no settings yet â€” use defaults
       } finally {
         setLoading(false);
       }
@@ -57,7 +68,7 @@ export function FooterSettingsSection() {
     fetchSettings();
   }, []);
 
-  // ─── Save ─────────────────────────────────────────────────
+  // â”€â”€â”€ Save â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const handleSave = async () => {
     setSaving(true);
@@ -80,12 +91,15 @@ export function FooterSettingsSection() {
     }
   };
 
-  // ─── Social links helpers ─────────────────────────────────
+  // â”€â”€â”€ Social links helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   const addSocialLink = () => {
     setSettings((prev) => ({
       ...prev,
-      socialLinks: [...prev.socialLinks, { platform: "facebook", url: "" }],
+      socialLinks: [
+        ...prev.socialLinks,
+        { platform: "facebook", url: "", icon: "" },
+      ],
     }));
   };
 
@@ -113,7 +127,7 @@ export function FooterSettingsSection() {
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
+    <div className="p-8 max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -121,7 +135,7 @@ export function FooterSettingsSection() {
             Footer Settings
           </h1>
           <p className="text-sm font-mono text-muted-foreground">
-            Manage footer branding, description and social links
+            Manage footer branding, contact details, social icons and links
           </p>
         </div>
         <button
@@ -161,6 +175,39 @@ export function FooterSettingsSection() {
           <div className="flex flex-col gap-4">
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">
+                Footer Logo
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={settings.footerLogo}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      footerLogo: e.target.value,
+                    }))
+                  }
+                  placeholder="https://.../footer-logo.png"
+                  className="flex-1 text-sm bg-background border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
+                />
+                <button
+                  onClick={() => setMediaTarget({ type: "footerLogo" })}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs border border-border rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <ImageIcon size={14} />
+                  Media
+                </button>
+              </div>
+              {settings.footerLogo && (
+                <img
+                  src={settings.footerLogo}
+                  alt="Footer logo preview"
+                  className="mt-3 h-12 w-auto max-w-48 object-contain rounded border border-border bg-muted/30 p-1"
+                />
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">
                 Brand Title
               </label>
               <input
@@ -193,6 +240,42 @@ export function FooterSettingsSection() {
                 className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring resize-none"
               />
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">
+                  Contact Address
+                </label>
+                <textarea
+                  value={settings.footerAddress}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      footerAddress: e.target.value,
+                    }))
+                  }
+                  placeholder="Street, city, country"
+                  rows={3}
+                  className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">
+                  Contact Email
+                </label>
+                <input
+                  type="email"
+                  value={settings.footerEmail}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      footerEmail: e.target.value,
+                    }))
+                  }
+                  placeholder="hello@example.com"
+                  className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
+                />
+              </div>
+            </div>
             <div>
               <label className="text-sm font-medium text-foreground mb-1.5 block">
                 Copyright Text
@@ -206,7 +289,7 @@ export function FooterSettingsSection() {
                     footerCopyright: e.target.value,
                   }))
                 }
-                placeholder={`© ${new Date().getFullYear()} My Website. All rights reserved.`}
+                placeholder={`Â© ${new Date().getFullYear()} My Website. All rights reserved.`}
                 className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
               />
             </div>
@@ -235,7 +318,10 @@ export function FooterSettingsSection() {
           ) : (
             <div className="flex flex-col gap-3">
               {settings.socialLinks.map((link, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div
+                  key={index}
+                  className="grid grid-cols-1 md:grid-cols-[144px_1fr_1fr_auto_auto_auto] gap-2 items-center"
+                >
                   <select
                     value={link.platform}
                     onChange={(e) =>
@@ -258,6 +344,32 @@ export function FooterSettingsSection() {
                     placeholder="https://..."
                     className="flex-1 text-sm bg-background border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
                   />
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={link.icon ?? ""}
+                      onChange={(e) =>
+                        updateSocialLink(index, "icon", e.target.value)
+                      }
+                      placeholder="Icon image URL"
+                      className="min-w-0 flex-1 text-sm bg-background border border-border rounded-lg px-3 py-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
+                    />
+                    <button
+                      onClick={() => setMediaTarget({ type: "socialIcon", index })}
+                      className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted border border-border rounded-lg transition-colors"
+                    >
+                      <ImageIcon size={14} />
+                    </button>
+                  </div>
+                  {link.icon ? (
+                    <img
+                      src={link.icon}
+                      alt={`${link.platform} icon`}
+                      className="h-8 w-8 rounded-full object-cover border border-border bg-muted"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full border border-border bg-muted" />
+                  )}
                   {link.url && (
                     <a
                       href={link.url}
@@ -280,37 +392,22 @@ export function FooterSettingsSection() {
           )}
         </div>
 
-        {/* Footer Columns info */}
-        <div className="bg-muted/30 border border-border rounded-lg p-5">
-          <h2 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wide">
-            Footer Link Columns
-          </h2>
-          <p className="text-sm text-muted-foreground mb-3">
-            Footer columns are managed via Menus. Create menus with these
-            locations:
-          </p>
-          <div className="flex flex-col gap-1.5">
-            {["footer-1", "footer-2", "footer-3"].map((loc) => (
-              <div
-                key={loc}
-                className="flex items-center gap-2 text-sm font-mono"
-              >
-                <span className="px-2 py-0.5 bg-muted border border-border rounded text-muted-foreground">
-                  {loc}
-                </span>
-                <span className="text-muted-foreground text-xs">
-                  → Footer Column {loc.split("-")[1]}
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground mt-3">
-            Go to{" "}
-            <span className="font-semibold text-foreground">Menus</span> to
-            manage footer link columns.
-          </p>
-        </div>
       </div>
+
+      <MediaPickerModal
+        open={mediaTarget !== null}
+        onClose={() => setMediaTarget(null)}
+        onSelect={(media: any) => {
+          if (!mediaTarget) return;
+          if (mediaTarget.type === "footerLogo") {
+            setSettings((prev) => ({ ...prev, footerLogo: media.url }));
+          } else {
+            updateSocialLink(mediaTarget.index, "icon", media.url);
+          }
+          setMediaTarget(null);
+        }}
+      />
     </div>
   );
 }
+

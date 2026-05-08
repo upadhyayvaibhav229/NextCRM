@@ -235,7 +235,7 @@ export function MediaTable({
       data={items}
       columns={columns}
       pageSize={25}
-      searchKeys={["originalName", "fileName", "mimeType"]}
+      // searchKeys={["originalName", "fileName", "mimeType"]}
       searchPlaceholder="Search media..."
       emptyMessage="No media found."
     />

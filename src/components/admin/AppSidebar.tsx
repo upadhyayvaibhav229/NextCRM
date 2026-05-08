@@ -16,6 +16,7 @@ import {
   Hash,
   PlusCircle,
   ChevronDown,
+  Layout,
 } from "lucide-react";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";
@@ -76,13 +77,12 @@ const navItems: NavItem[] = [
     icon: FileText,
     description: "Manage Media Library",
     children: [
-      { 
+      {
         id: "all-media",
         label: "Media Library",
         icon: FileText,
         description: "View all Medias",
       },
-      
     ],
   },
   {
@@ -103,11 +103,20 @@ const navItems: NavItem[] = [
     icon: Code,
     description: "Styling & themes",
   },
+
   {
     id: "settings",
     label: "Settings",
     icon: Settings,
     description: "System configuration",
+    children: [
+      {
+        id: "footer-settings",
+        label: "Footer Setting",
+        icon: Layout,
+        description: "Styling & themes",
+      },
+    ],
   },
 ];
 
@@ -222,7 +231,7 @@ export function Sidebar({
 
   // Add this useEffect to inject styles for hiding scrollbar
   useEffect(() => {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       .hide-scrollbar {
         -ms-overflow-style: none;
@@ -233,7 +242,7 @@ export function Sidebar({
       }
     `;
     document.head.appendChild(style);
-    
+
     return () => {
       document.head.removeChild(style);
     };
@@ -282,9 +291,7 @@ export function Sidebar({
         </div>
 
         {/* Navigation - Made scrollable with hidden scrollbar */}
-        <div 
-          className="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 hide-scrollbar"
-        >
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1.5 hide-scrollbar">
           {navItems.map((item) => renderNavItem(item))}
         </div>
 

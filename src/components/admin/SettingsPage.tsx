@@ -11,6 +11,8 @@ import {
   AlertCircle,
   Trash2,
 } from "lucide-react";
+import { Button } from "@/src/ui/button";
+import { MediaPickerModal } from "../media-manager/MediaPicker";
 
 // ─── Image Upload Component (Simplified - No URL input) ─────────────────────
 
@@ -25,7 +27,7 @@ function ImageUpload({ label, value, onChange, onUpload }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
   const handleFileSelect = async (file: File) => {
     // Validate file type
     if (!file.type.startsWith("image/")) {
@@ -62,61 +64,62 @@ function ImageUpload({ label, value, onChange, onUpload }: ImageUploadProps) {
   };
 
   return (
-    <div className="space-y-3">
-      <label className="block text-sm font-medium text-foreground">
-        {label}
-      </label>
-
-      {/* Image Preview */}
+    <div className="space-y-4">
+      {/* Preview Card */}
       {value && (
-        <div className="flex items-center gap-3">
-          <div className="h-16 w-16 rounded-lg border border-border bg-muted/20 overflow-hidden">
-            <img
-              src={value}
-              alt={label}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
+        <div className="relative flex items-center gap-3 border rounded-lg p-3 bg-card w-fit min-w-[280px]">
+          <img
+            src={value}
+            alt={label}
+            className="w-16 h-16 rounded object-cover border"
+          />
+
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">{value.split("/").pop()}</p>
+
+            <p className="text-xs text-muted-foreground">{label}</p>
           </div>
+
           <button
             type="button"
-            onClick={() => onChange(null)}
-            className="p-1.5 text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+            onClick={() => onChange("")}
+            className="text-muted-foreground hover:text-destructive"
           >
-            <Trash2 className="h-4 w-4" />
+            ✕
           </button>
         </div>
       )}
 
-      {/* File Input */}
+      {/* Actions */}
       <div className="flex items-center gap-3">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFileSelect(file);
-          }}
-          className="flex-1 text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
-        />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowMediaPicker(true)}
+        >
+          {value ? `Change ${label}` : `Select ${label}`}
+        </Button>
 
-        {isUploading && (
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            <span className="text-xs text-muted-foreground">Uploading...</span>
-          </div>
+        {value && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            onClick={() => onChange("")}
+          >
+            Remove {label}
+          </Button>
         )}
       </div>
 
-      {error && (
-        <p className="text-xs text-destructive flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" />
-          {error}
-        </p>
-      )}
+      <MediaPickerModal
+        open={showMediaPicker}
+        onClose={() => setShowMediaPicker(false)}
+        onSelect={(media: any) => {
+          onChange(media.url);
+          setShowMediaPicker(false);
+        }}
+      />
     </div>
   );
 }
@@ -286,7 +289,7 @@ export function SettingsPage({
               />
 
               <ImageUpload
-                label="Favicon"
+                label="Site Icon"
                 value={settings.favicon || null}
                 onChange={(url) => updateField("favicon", url || "")}
                 onUpload={onUpload}
@@ -320,7 +323,7 @@ export function SettingsPage({
           </div>
 
           {/* Reading Settings */}
-          <div className="border border-border rounded-lg bg-card overflow-hidden">
+          <div className="border border-border rounded-lg bg-card overflow-hidden p-2">
             <div className="px-6 py-4 border-b border-border bg-muted/20">
               <h2 className="text-lg font-semibold">Reading Settings</h2>
             </div>
@@ -329,7 +332,7 @@ export function SettingsPage({
                 Your homepage displays
               </label>
 
-              <div className="space-y-3">
+              <div className="space-y-3 ">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="radio"

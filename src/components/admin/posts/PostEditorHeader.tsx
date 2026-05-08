@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
-import { Post } from "../Cms";
+import { Post } from "./Post.type";
 
 interface PostEditorHeaderProps {
   post: Post;
@@ -20,7 +20,7 @@ function generateSlug(title: string) {
 }
 
 export function PostEditorHeader({ post, onChange, onCancel }: PostEditorHeaderProps) {
-  const [editingSlug, setEditingSlug] = useState(false);
+  const [slugEditing, setSlugEditing] = useState(false);
   const [slugInput, setSlugInput] = useState(post.slug);
 
   const handleTitleChange = (value: string) => {
@@ -33,7 +33,7 @@ export function PostEditorHeader({ post, onChange, onCancel }: PostEditorHeaderP
     const clean = generateSlug(slugInput);
     setSlugInput(clean);
     onChange({ ...post, slug: clean });
-    setEditingSlug(false);
+    setSlugEditing(false);
   };
 
   return (
@@ -56,45 +56,58 @@ export function PostEditorHeader({ post, onChange, onCancel }: PostEditorHeaderP
         className="w-full text-[28px] font-semibold bg-transparent text-foreground border-none outline-none placeholder:text-muted-foreground/40 tracking-tight"
       />
 
-      {/* Permalink */}
-      <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
-        <span>Permalink:</span>
-        {editingSlug ? (
-          <div className="flex items-center gap-1.5">
-            <span className="text-muted-foreground">/posts/</span>
+      {/* Permalink row */}
+      <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+        <span className="font-medium">Permalink:</span>
+        {slugEditing ? (
+          <div className="flex items-center gap-2">
+            <span className="text-primary">
+              {typeof window !== "undefined"
+                ? `${window.location.origin}/posts/`
+                : "/posts/"}
+            </span>
             <input
               value={slugInput}
               onChange={(e) => setSlugInput(e.target.value)}
-              className="border-b border-primary bg-transparent text-foreground text-xs outline-none px-0.5 min-w-[120px]"
+              className="border border-primary bg-background px-2 py-0.5 text-sm text-foreground rounded focus:outline-none"
               autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSlugSave();
-                if (e.key === "Escape") setEditingSlug(false);
-              }}
             />
+            <span className="text-primary">/</span>
             <button
               onClick={handleSlugSave}
-              className="text-xs text-primary hover:underline"
+              className="px-2 py-0.5 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
             >
               OK
             </button>
             <button
-              onClick={() => { setSlugInput(post.slug); setEditingSlug(false); }}
-              className="text-xs text-muted-foreground hover:underline"
+              onClick={() => {
+                setSlugInput(post.slug);
+                setSlugEditing(false);
+              }}
+              className="px-2 py-0.5 text-xs border border-border rounded hover:bg-muted transition-colors"
             >
               Cancel
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5">
-            <span className="text-foreground font-medium">/posts/{post.slug}</span>
+          <>
+            <a
+              href={`/posts/${post.slug}`}
+              target="_blank"
+              className="text-primary hover:underline"
+            >
+              {typeof window !== "undefined"
+                ? `${window.location.origin}/posts/`
+                : "/posts/"}
+              <span className="font-medium">{post.slug}</span>/
+            </a>
             <button
-              onClick={() => setEditingSlug(true)}
-              className="text-xs px-1.5 py-0.5 border border-border rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              onClick={() => setSlugEditing(true)}
+              className="px-2 py-0.5 text-xs border border-border bg-background rounded hover:bg-muted transition-colors"
             >
               Edit
             </button>
-          </div>
+          </>
         )}
       </div>
     </div>

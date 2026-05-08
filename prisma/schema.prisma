@@ -49,6 +49,7 @@ model Post {
 
   categories Category[]
   tags       Tag[]
+  comments   Comment[]
 }
 
 model Category {
@@ -109,14 +110,13 @@ model SiteSettings {
 
   postsPerPage Int @default(10)
 
-  homepageType String @default("posts") // posts | page
+  homepageType   String @default("posts") // posts | page
   homepagePageId Int?
-  postsPageId Int?
+  postsPageId    Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 model FooterSettings {
   id    Int    @id @default(autoincrement())
@@ -140,9 +140,44 @@ model Media {
   createdAt    DateTime @default(now())
 }
 
+enum CommentStatus {
+  PENDING
+  APPROVED
+  SPAM
+  TRASH
+}
+
+model Comment {
+  id      String @id @default(cuid())
+  content String @db.Text
+
+  authorName  String
+  authorEmail String
+
+  authorUrl String?
+  ipAddress String?
+  userAgent String?
+
+  status CommentStatus @default(PENDING)
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  parentId String?
+  parent   Comment?  @relation("CommentChildren", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentChildren")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model User {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  password String 
+  id       Int       @id @default(autoincrement())
+  email    String    @unique
+  password String
   role     String // admin | editor
+  comments Comment[]
 }
