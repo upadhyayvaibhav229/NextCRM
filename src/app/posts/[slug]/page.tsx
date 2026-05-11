@@ -438,6 +438,7 @@ ${seo.twitterImage || seo.ogImage || post.featuredImage ? `<meta name="twitter:i
         ${renderFooterColumns(footerMenus)}
       </div>
     </div>
+    
     <div class="footer-bottom">
       <p>${footer.footerCopyright}</p>
     </div>
