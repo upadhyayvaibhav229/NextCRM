@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { toast } from "sonner";
+import { toast } from "@/src/hooks/use-toast";
 import { MediaGrid } from "./MediaGrid";
 import { UploadZone } from "./UploadZone";
 import { MediaFilter, MediaToolbar } from "./MediaToolbar";
@@ -74,10 +74,18 @@ export function MediaManager() {
         setHasMore(data.data.hasMore || false);
         setTotalItems(data.data.total || data.data.items.length);
       } else {
-        toast.error(data.message || "Failed to fetch media");
+        toast({
+          title: "Error",
+          description: data.message || "Failed to fetch media",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      toast.error("Failed to fetch media");
+      toast({
+        title: "Error",
+        description: "Failed to fetch media",
+        variant: "destructive",
+      });
       console.error(error);
     } finally {
       setLoading(false);
@@ -193,7 +201,10 @@ export function MediaManager() {
     setPage(1);
     setMedia([]);
     fetchMedia();
-    toast.success("Media uploaded successfully");
+    toast({
+      title: "Upload complete",
+      description: "Your media has been uploaded successfully",
+    });
   };
 
   const handleDelete = async () => {
@@ -206,7 +217,10 @@ export function MediaManager() {
 
       if (!response.ok) throw new Error();
 
-      toast.success("Media deleted");
+      toast({
+        title: "Success",
+        description: "Media deleted successfully",
+      });
       setMedia((prev) => prev.filter((m) => m.id !== deleteItem.id));
       setSelectedIds((prev) => {
         const next = new Set(prev);
@@ -215,7 +229,11 @@ export function MediaManager() {
       });
       setTotalItems((prev) => prev - 1);
     } catch (error) {
-      toast.error("Failed to delete");
+      toast({
+        title: "Error",
+        description: "Failed to delete media",
+        variant: "destructive",
+      });
     } finally {
       setDeleteItem(null);
     }
@@ -236,12 +254,19 @@ export function MediaManager() {
 
       if (!response.ok) throw new Error();
 
-      toast.success(`${ids.length} items deleted`);
+      toast({
+        title: "Success",
+        description: `${ids.length} items deleted`,
+      });
       setMedia((prev) => prev.filter((m) => !selectedIds.has(m.id)));
       setSelectedIds(new Set());
       setTotalItems((prev) => prev - ids.length);
     } catch (error) {
-      toast.error("Failed to delete some items");
+      toast({
+        title: "Error",
+        description: "Failed to delete some items",
+        variant: "destructive",
+      });
     }
   };
 
@@ -269,11 +294,16 @@ export function MediaManager() {
         ),
       );
       setPreviewItem(updatedMedia);
-      toast.success("Media updated successfully");
+      toast({
+        title: "Success",
+        description: "Media updated successfully",
+      });
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update media",
-      );
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update media",
+        variant: "destructive",
+      });
       throw error;
     }
   };

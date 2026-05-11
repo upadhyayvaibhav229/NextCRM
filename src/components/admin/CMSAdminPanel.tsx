@@ -17,6 +17,7 @@ import { TagTable } from "@/src/components/admin/tags/Tags";
 import AdminSettings from "./setting/Page";
 import { FooterSettingsSection } from "./FooterSettingSection";
 import { MediaManager } from "../media-manager/MediaManager";
+import CommentsSection from "./comments/CommentsSection";
 
 export function CMSAdminPanel() {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -43,6 +44,7 @@ export function CMSAdminPanel() {
       <main className="flex-1 min-w-0 overflow-y-auto dot-grid p-2.5">
         {activeSection === "dashboard" && <DashboardSection />}
         {activeSection === "all-posts" && <PostsSection />}
+        {activeSection === "comments" && <CommentsSection />}
         {activeSection === "all-media" && <MediaManager />}
         {activeSection === "categories" && (
           <div className="p-8">

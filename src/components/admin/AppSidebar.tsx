@@ -60,6 +60,12 @@ const navItems: NavItem[] = [
         description: "View all posts",
       },
       {
+        id: "comments",
+        label: "Comments",
+        icon: PlusCircle,
+        description: "View all comments",
+      },
+      {
         id: "categories",
         label: "Categories",
         icon: FolderOpen,
@@ -113,8 +119,14 @@ const navItems: NavItem[] = [
     description: "System configuration",
     children: [
       {
+        id: "settings",
+        label: "General Settings",
+        icon: Layout,
+        description: "Styling & themes",
+      },
+      {
         id: "footer-settings",
-        label: "Footer Setting",
+        label: "Footer Settings",
         icon: Layout,
         description: "Styling & themes",
       },

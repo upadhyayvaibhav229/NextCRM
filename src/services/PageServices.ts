@@ -32,6 +32,12 @@ export const pageService = {
     return res.data
   },
 
+  // bulk delete
+async bulkDelete(ids: (string | number)[]) {
+  const res = await api.post('/pages/bulk-delete', { ids })
+  return res.data
+},
+
   // ─── PUBLISH PAGE ─────────────────────────
   async publish(id: number) {
     const res = await api.put(`/pages/${id}`, {

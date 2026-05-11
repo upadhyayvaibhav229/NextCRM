@@ -7,6 +7,7 @@ import { pageService } from "@/src/services/PageServices";
 import { PageEditor } from "./page-editor";
 import { Button } from "@/src/ui/button";
 import { Column, DataTable } from "@/src/ui/data-table";
+import { useBulkDelete } from "@/src/hooks/use-bulkdelete";
 
 export function PagesSection() {
   const [editingPage, setEditingPage] = useState<Page | null>(null);
@@ -15,7 +16,16 @@ export function PagesSection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isNewPage, setIsNewPage] = useState(false);
-
+  // const [selectedPages, setSelectedPages] = useState<Page[]>([]);
+  const {
+    selectedItems: selectedPages,
+    setSelectedItems: setSelectedPages,
+    deleteSelected,
+    bulkDeleteLoading,
+  } = useBulkDelete({
+    setItems: setPages,
+    bulkDeleteFn: pageService.bulkDelete,
+  });
   const handleTogglePublish = async (page: Page) => {
     try {
       setLoading(true);
@@ -306,6 +316,16 @@ export function PagesSection() {
           {error}
         </div>
       )}
+      {selectedPages.length > 0 && (
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={deleteSelected}
+          disabled={bulkDeleteLoading}
+        >
+          Delete All ({selectedPages.length})
+        </Button>
+      )}
 
       <DataTable
         data={pages}
@@ -315,16 +335,20 @@ export function PagesSection() {
         searchKeys={["title", "slug"]}
         pageSize={10}
         emptyMessage="No pages found. Create your first page to get started."
+        onSelectedRowsChange={setSelectedPages}
+        selectedRows={selectedPages}
         toolbarActions={
-          <Button
-            onClick={handleNewPage}
-            disabled={loading}
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Plus size={15} />
-            New Page
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleNewPage}
+              disabled={loading}
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Plus size={15} />
+              New Page
+            </Button>
+          </div>
         }
       />
     </div>

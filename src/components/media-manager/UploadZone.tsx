@@ -4,7 +4,7 @@ import React, { useRef, useState, useCallback } from "react";
 import { Upload, FileUp, X, CheckCircle2, AlertCircle } from "lucide-react";
 import { Progress } from "@/src/ui/progress";
 import { cn } from "@/src/lib/utils";
-import { toast } from "sonner";
+import { toast } from "@/src/hooks/use-toast";
 
 interface UploadZoneProps {
   onUploadComplete: () => void;
@@ -40,10 +40,17 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
 
       if (!response.ok) throw new Error();
 
-      toast.success(`${files.length} file(s) uploaded`);
+      toast({
+        title: "Success",
+        description: "Media uploaded successfully",
+      });
       onUploadComplete();
     } catch (error) {
-      toast.error(`Failed: ${files[0].name}`);
+      toast({
+        title: "Error",
+        description: `Failed to upload ${files[0].name}`,
+        variant: "destructive",
+      });
     } finally {
       clearInterval(interval);
       setUploading(false);

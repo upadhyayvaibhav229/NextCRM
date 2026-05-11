@@ -7,7 +7,7 @@ import { Button } from "@/src/ui/button";
 import { cn } from "@/src/lib/utils";
 import { MediaItem } from "./MediaManager";
 import { Column, DataTable } from "@/src/ui/data-table";
-import { toast } from "sonner";
+import { toast } from "@/src/hooks/use-toast";
 
 interface MediaCardProps {
   item: MediaItem;
@@ -115,11 +115,7 @@ export function MediaCard({
   );
 }
 
-export function MediaTable({
-  items,
-  onPreview,
-  onDelete,
-}: MediaTableProps) {
+export function MediaTable({ items, onPreview, onDelete }: MediaTableProps) {
   const columns: Column<MediaItem>[] = [
     {
       key: "name",
@@ -188,7 +184,7 @@ export function MediaTable({
       key: "date",
       header: "Date",
       cell: (item) => new Date(item.createdAt).toLocaleDateString(),
-      className: "text-xs text-muted-foreground"
+      className: "text-xs text-muted-foreground",
     },
     {
       key: "uploadedto",
