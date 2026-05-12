@@ -102,7 +102,7 @@ export function PostsSection() {
         tagIds: tagIds ?? [],
       };
 
-      let saved : any;
+      let saved: any;
       if (isNewPost) {
         // Remove the temp id — backend will generate real one
         const { id, ...createPayload } = payload;
@@ -169,12 +169,16 @@ export function PostsSection() {
     {
       key: "slug",
       header: "Slug",
-      // sortable: false,
       filterable: false,
       cell: (row) => (
-        <code className="font-mono text-xs text-muted-foreground">
+        <button
+          onClick={() => {
+            window.open(`/posts/${row.slug}`, "_blank");
+          }}
+          className="font-mono text-xs text-primary hover:underline cursor-pointer"
+        >
           /posts/{row.slug}
-        </code>
+        </button>
       ),
     },
     {
