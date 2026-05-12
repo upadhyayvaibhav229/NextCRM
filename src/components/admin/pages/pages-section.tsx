@@ -8,6 +8,7 @@ import { PageEditor } from "./page-editor";
 import { Button } from "@/src/ui/button";
 import { Column, DataTable } from "@/src/ui/data-table";
 import { useBulkDelete } from "@/src/hooks/use-bulkdelete";
+import { toast } from "@/src/hooks/use-toast";
 
 export function PagesSection() {
   const [editingPage, setEditingPage] = useState<Page | null>(null);
@@ -35,6 +36,12 @@ export function PagesSection() {
           : await pageService.publish(Number(page.id));
       const updated = res.data?.data ?? res.data ?? res;
       setPages((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+      toast({
+        title:
+          page.status === "published" ? "Page unpublished" : "Page published",
+        description:
+          page.status === "published" ? "Page unpublished" : "Page published",
+      });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -81,33 +88,129 @@ export function PagesSection() {
 
     try {
       setLoading(true);
-      const updatedPage = {
-        ...finalPage,
-      };
+      setError(null);
 
-      let savedPage;
+      let pageForValidation = finalPage;
+      let createdPage: Page | null = null;
 
       if (isNewPage) {
-        const res = await pageService.create(updatedPage);
-        savedPage = res.data?.data || res.data;
-        setPages([...pages, savedPage]);
-      } else {
-        const res = await pageService.update(finalPage.id as any, updatedPage);
-        savedPage = res.data?.data || res.data;
-        const existingIndex = pages.findIndex((p) => p.id === finalPage.id);
-        if (existingIndex >= 0) {
-          const newPages = [...pages];
-          newPages[existingIndex] = savedPage;
-          setPages(newPages);
-        }
+        const createData = {
+          title: finalPage.title,
+          slug: finalPage.slug,
+          html: finalPage.html,
+          css: finalPage.css,
+          js: finalPage.js,
+          status: finalPage.status,
+        };
+
+        const createRes = await pageService.create(createData);
+        createdPage = createRes.data?.data || createRes.data;
+        pageForValidation = createdPage;
       }
 
-      setEditingPage(null);
+      // ── Step 1: Validate + convert HTML → JSX ──
+      const validateRes = await fetch(
+        `/api/pages/${pageForValidation.id}/convert-jsx`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            html: pageForValidation.html || "",
+            save: false, // validate only first
+          }),
+        },
+      );
+
+      const validateData = await validateRes.json();
+
+      // ── Block if errors ──
+      // ── Block if validation fails ──
+
+      if (!validateData.success) {
+        const errorMessages = [
+          ...(validateData.data.errors || []),
+
+          ...(validateData.data.warnings || [])
+            .filter((w: any) => w.type === "critical")
+            .map((w: any) => w.message),
+        ];
+
+        setError(
+          `Cannot save — fix these issues first:\n\n${errorMessages.join("\n")}`,
+        );
+
+        setLoading(false);
+
+        return;
+      }
+      // ── Step 2: Save page with jsxCode ──
+      const pageWithJsx = {
+        id: pageForValidation.id,
+
+        title: pageForValidation.title,
+
+        slug: pageForValidation.slug,
+
+        html: pageForValidation.html,
+
+        css: pageForValidation.css,
+
+        js: pageForValidation.js,
+
+        status: pageForValidation.status,
+
+        seoData: pageForValidation.seoData,
+
+        jsxCode: validateData.data.jsxCode,
+
+        pageType: "jsx",
+      };
+      let savedPage!: Page;
+
+      if (isNewPage && createdPage) {
+        const updateRes = await pageService.update(
+          createdPage.id as any,
+          pageWithJsx,
+        );
+        savedPage = updateRes.data?.data || updateRes.data;
+        setPages((prev) => [...prev, savedPage]);
+        toast({
+          title: "Page created",
+
+          description:
+            validateData.data.warnings?.length > 0
+              ? `Page created with ${validateData.data.warnings.length} warning${validateData.data.warnings.length > 1 ? "s" : ""}.`
+              : "Page created and JSX converted successfully.",
+        });
+      } else {
+        const res = await pageService.update(finalPage.id as any, pageWithJsx);
+        savedPage = res.data?.data || res.data;
+        setPages((prev) =>
+          prev.map((p) => (p.id === finalPage.id ? savedPage : p)),
+        );
+        toast({
+          title: "Page updated",
+
+          description:
+            validateData.data.warnings?.length > 0
+              ? `Page updated with ${validateData.data.warnings.length} warning${validateData.data.warnings.length > 1 ? "s" : ""}.`
+              : "Page updated and JSX converted successfully.",
+        });
+      }
+
+      setEditingPage({
+        ...savedPage,
+        message: validateData.message,
+
+        warnings: validateData.data.warnings || [],
+
+        errors: validateData.data.errors || [],
+      } as any);
       setIsNewPage(false);
       setError(null);
-    } catch (error: any) {
-      setError(error.message);
-      console.error("Failed to save page:", error);
+    } catch (err: any) {
+      setError(err.message);
+      console.error("Failed to save page:", err);
     } finally {
       setLoading(false);
     }
@@ -170,9 +273,14 @@ export function PagesSection() {
       header: "Slug",
       filterable: false,
       cell: (page) => (
-        <code className="font-mono text-xs text-muted-foreground">
+        <button
+          onClick={() => {
+            window.open(`/${page.slug}`, "_blank");
+          }}
+          className="text-xs font-mono text-primary hover:underline cursor-pointer"
+        >
           /{page.slug}
-        </code>
+        </button>
       ),
     },
     {

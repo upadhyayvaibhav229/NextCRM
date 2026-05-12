@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/src/ui/button";
 import { MediaPickerModal } from "../../media-manager/MediaPicker";
+import JsxPreviewTab from "./JsxPreviewTab";
 
 interface PageEditorContentProps {
   page: Page;
@@ -63,12 +64,12 @@ function ToolbarDivider() {
   return <div className="w-px h-5 bg-border mx-1" />;
 }
 
-// ─── Visual Tab (TipTap WYSIWYG) ─────────────────────────
+// ─── Visual Tab ───────────────────────────────────────────
+
 const sanitizeHtml = (html: string) => {
-  return html
-    .replace(/<p><\/p>/g, "")
-    .replace(/<p>\s*<\/p>/g, "");
+  return html.replace(/<p><\/p>/g, "").replace(/<p>\s*<\/p>/g, "");
 };
+
 function VisualEditor({
   page,
   onChange,
@@ -76,7 +77,7 @@ function VisualEditor({
 }: {
   page: Page;
   onChange: (page: Page) => void;
-  activeTab: "visual" | "code";
+  activeTab: "visual" | "code" | "jsx-preview";
 }) {
   const editor = useEditor({
     immediatelyRender: false,
@@ -88,7 +89,6 @@ function VisualEditor({
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
     content: page.html || "",
-    
     onUpdate: ({ editor }) => {
       const cleanHtml = sanitizeHtml(editor.getHTML());
       onChange({ ...page, html: cleanHtml });
@@ -103,16 +103,17 @@ function VisualEditor({
 
   useEffect(() => {
     if (!editor) return;
-
     if (page.html !== editor.getHTML()) {
       editor.commands.setContent(page.html || "");
     }
   }, [activeTab]);
+
   useEffect(() => {
     if (editor && page.html !== editor.getHTML()) {
       editor.commands.setContent(page.html || "");
     }
   }, [page.html, activeTab]);
+
   const addLink = () => {
     const url = window.prompt("Enter URL:");
     if (url && editor) editor.chain().focus().setLink({ href: url }).run();
@@ -125,7 +126,6 @@ function VisualEditor({
 
   return (
     <>
-      {/* WYSIWYG Toolbar */}
       <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-border bg-muted">
         <select
           onChange={(e) => {
@@ -245,7 +245,6 @@ function VisualEditor({
         </ToolbarButton>
       </div>
 
-      {/* TipTap content area */}
       <div className="p-6">
         <EditorContent editor={editor} />
       </div>
@@ -253,7 +252,7 @@ function VisualEditor({
   );
 }
 
-// ─── Code Tab (Monaco with HTML / CSS / JS sub-tabs) ─────
+// ─── Code Tab ─────────────────────────────────────────────
 
 function CodeEditor({
   page,
@@ -288,7 +287,6 @@ function CodeEditor({
 
   return (
     <>
-      {/* HTML / CSS / JS sub-tabs */}
       <div className="flex border-b border-[#dcdcde] bg-[#1e1e1e]">
         {(["html", "css", "js"] as const).map((tab) => (
           <button
@@ -305,7 +303,6 @@ function CodeEditor({
         ))}
       </div>
 
-      {/* Monaco editor */}
       <div className="h-125">
         <Editor
           height="100%"
@@ -327,68 +324,144 @@ function CodeEditor({
   );
 }
 
+// ─── JSX Preview Tab ──────────────────────────────────────  ← NEW
+
+// function JsxPreviewTab({ jsxCode }: { jsxCode?: string | null }) {
+//   if (!jsxCode) {
+//     console.log("JSX PROP =>", jsxCode);
+//     return (
+//       <div className="flex flex-col items-center justify-center h-64 text-muted-foreground gap-3">
+//         <span className="text-5xl">⚛️</span>
+//         <p className="text-sm font-medium">No JSX generated yet</p>
+//         <p className="text-xs text-muted-foreground text-center max-w-xs">
+//           Save or publish this page — the HTML will be automatically
+//           converted to a React TSX component and shown here.
+//         </p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="flex flex-col gap-3 p-4">
+
+//       {/* Header */}
+//       <div className="flex items-center justify-between">
+//         <div>
+//           <h3 className="text-sm font-semibold text-foreground">
+//             React Component (TSX)
+//           </h3>
+//           <p className="text-xs text-muted-foreground mt-0.5">
+//             Auto-generated from HTML on save · {jsxCode.split("\n").length} lines
+//           </p>
+//         </div>
+//         <button
+//           onClick={() => navigator.clipboard.writeText(jsxCode)}
+//           className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg transition-colors"
+//         >
+//           Copy TSX
+//         </button>
+//       </div>
+
+//       {/* Info */}
+//       <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">
+//         ✅ Colors, fonts, spacing and class names are preserved exactly.
+//         Only JSX syntax was changed{" "}
+//         <span className="font-mono">
+//           (class→className, style strings→objects, self-closing tags)
+//         </span>
+//       </div>
+
+//       {/* Code viewer using Monaco — read only */}
+//       <Editor
+//         height="500px"
+//         language="typescript"
+//         value={jsxCode}
+//         theme="vs-dark"
+//         options={{
+//           readOnly:            true,
+//           minimap:             { enabled: false },
+//           fontSize:            13,
+//           lineNumbers:         "on",
+//           scrollBeyondLastLine: false,
+//           automaticLayout:     true,
+//           wordWrap:            "on",
+//         }}
+//         loading={
+//           <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-sm text-[#858585]">
+//             Loading...
+//           </div>
+//         }
+//       />
+//     </div>
+//   );
+// }
+
 // ─── Main Export ──────────────────────────────────────────
 
 export function PageEditorContent({ page, onChange }: PageEditorContentProps) {
-  const [activeTab, setActiveTab] = useState<"visual" | "code">("visual");
-    const [showMediaPicker, setShowMediaPicker] = useState(false);
+  // ← CHANGE 1: add "jsx-preview" to type
+  const [activeTab, setActiveTab] = useState<"visual" | "code" | "jsx-preview">(
+    "visual",
+  );
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   return (
-      <>
+    <>
       <div className="">
-
-          <Button
-        type="button"
-        variant="default"
-        size="sm"
-        className=" top-4 right-4 z-50"
-        onClick={() => setShowMediaPicker(true)}
-      >
-        Add Media
-      </Button>
-      </div>
-    <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
-      {/* Visual | Code top-level tabs — aligned right like WordPress */}
-      <div className="flex justify-end border-b border-border bg-card px-3">
-        {(["visual", "code"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors ${
-              activeTab === tab
-                ? "text-foreground border-b-2 border-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-     
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          className="top-4 right-4 z-50"
+          onClick={() => setShowMediaPicker(true)}
+        >
+          Add Media
+        </Button>
       </div>
 
+      <div className="bg-card border border-border rounded shadow-sm overflow-hidden">
+        {/* ← CHANGE 2: add JSX Preview tab button */}
+        <div className="flex justify-end border-b border-border bg-card px-3">
+          {(["visual", "code", "jsx-preview"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2.5 text-sm font-medium capitalize transition-colors ${
+                activeTab === tab
+                  ? "text-foreground border-b-2 border-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {/* ← CHANGE 3: display name */}
+              {tab === "jsx-preview" ? "JSX Preview" : tab}
+            </button>
+          ))}
+        </div>
 
-      {/* Render active tab */}
-      {activeTab === "visual" ? (
-        <VisualEditor page={page} onChange={onChange} activeTab={activeTab} />
-      ) : (
-        <CodeEditor page={page} onChange={onChange} />
-      )}
-    </div> 
-
-    <MediaPickerModal
-            open={showMediaPicker}
-            onClose={() => setShowMediaPicker(false)}
-            onSelect={(media: any) => {
-              const mediaHtml = media.mimeType.startsWith("image/")
-                ? `<img src="${media.url}" alt="${media.altText || ""}" />`
-                : `<a href="${media.url}" target="_blank">${media.originalName}</a>`;
-    
-              onChange({
-                ...page,
-                html: (page.html || "") + mediaHtml,
-              });
-            }}
+        {/* ← CHANGE 4: render correct panel */}
+        {activeTab === "visual" && (
+          <VisualEditor page={page} onChange={onChange} activeTab={activeTab} />
+        )}
+        {activeTab === "code" && <CodeEditor page={page} onChange={onChange} />}
+        {activeTab === "jsx-preview" && (
+          <JsxPreviewTab
+            jsxCode={(page as any).jsxCode}
+            warnings={(page as any).warnings}
+            errors={(page as any).errors}
           />
-      </>
+        )}
+      </div>
+
+      <MediaPickerModal
+        open={showMediaPicker}
+        onClose={() => setShowMediaPicker(false)}
+        onSelect={(media: any) => {
+          const mediaHtml = media.mimeType.startsWith("image/")
+            ? `<img src="${media.url}" alt="${media.altText || ""}" />`
+            : `<a href="${media.url}" target="_blank">${media.originalName}</a>`;
+          onChange({ ...page, html: (page.html || "") + mediaHtml });
+        }}
+      />
+    </>
   );
 }

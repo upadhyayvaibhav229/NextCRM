@@ -19,11 +19,12 @@ model Page {
   html      String
   css       String?
   js        String?
-  status    String // draft | published
+  jsxCode   String?  @db.Text        // ← ADD
+  pageType  String   @default("html") // ← ADD
+  status    String
   seoData   Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  featuredImage String?
 }
 
 enum ContentStatus {
