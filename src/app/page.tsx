@@ -38,6 +38,7 @@ export default function PostsListPage() {
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [latestPosts, setLatestPosts] = useState<Post[]>([]);
   const [page, setPage] = useState<any>(null);
+  const [globalCss, setGlobalCss] = useState("");
   useEffect(() => {
     const fetchMenus = async () => {
       const res = await fetch("/api/menus");
@@ -96,6 +97,20 @@ export default function PostsListPage() {
     };
 
     fetchHome();
+  }, []);
+
+  // ── Fetch global CSS ──
+  useEffect(() => {
+    const fetchGlobalCss = async () => {
+      try {
+        const res = await fetch("/api/setting/global-css");
+        const data = await res.json();
+        if (data.success) setGlobalCss(data.data?.css || "");
+      } catch (err) {
+        console.error("Failed to load global CSS:", err);
+      }
+    };
+    fetchGlobalCss();
   }, []);
 
   useEffect(() => {
@@ -200,7 +215,7 @@ export default function PostsListPage() {
       })
       .join("");
 
-const footer = {
+  const footer = {
     ...DEFAULT_FOOTER_SETTINGS,
     ...footerSettings,
     footerBrandTitle:
@@ -227,9 +242,8 @@ const footer = {
           : ""
       }
     </div>`;
-  
 
-const renderFooterContact = (): string => `
+  const renderFooterContact = (): string => `
     <div class="footer-contact">
       <h4 class="footer-col-title">Contact Us</h4>
       ${footer.footerAddress ? `<p class="footer-contact-text">${footer.footerAddress.replace(/\n/g, "<br>")}</p>` : ""}
@@ -251,7 +265,6 @@ const renderFooterContact = (): string => `
       }
     </div>`;
 
-    
   const postsHtml =
     latestPosts.length === 0
       ? `<div class="empty"><p>No posts published yet.</p></div>`
@@ -358,6 +371,8 @@ const renderFooterContact = (): string => `
 @media (max-width: 900px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
     @media (max-width: 900px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
     ${page.css ?? ""}
+    /* ── Global CSS ── */
+    ${globalCss || ""}
   </style>
 </head>
 <body>
@@ -489,6 +504,8 @@ const renderFooterContact = (): string => `
 .footer-bottom{border-top:1px solid #e5e7eb;padding-top:1.5rem;text-align:center;font-size:.75rem;color:#9ca3af}
 @media (max-width: 900px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
 @media (max-width: 900px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
+  /* ── Global CSS ── */
+  ${globalCss || ""}
   </style>
 </head>
 <body>

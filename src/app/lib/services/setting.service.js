@@ -63,6 +63,7 @@ export async function updateSettings(input) {
           : input.postsPageId !== undefined
             ? Number(input.postsPageId)
             : undefined,
+      globalCss: input.globalCss,
     },
   });
 }

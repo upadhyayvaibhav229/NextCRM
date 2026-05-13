@@ -1,13 +1,16 @@
 import { asyncHandler } from "@/src/app/lib/utils/asyncHandler";
 import { ApiError } from "@/src/app/lib/utils/ApiError";
 import { ApiResponse } from "@/src/app/lib/utils/ApiResponse";
-import { getAllSettings, upsertSetting } from "../../lib/services/settings.service";
+import {
+  getAllSettings,
+  upsertSetting,
+} from "../../lib/services/footersettings.service";
 // import { getAllSettings, upsertSetting } from "@/app/lib/services/settings.service.js";
 
 // GET /api/settings — get all settings
 export const GET = asyncHandler(async () => {
   const settings = await getAllSettings();
-  return Response.json(new ApiResponse(200, settings, "Settings fetched"))  ;
+  return Response.json(new ApiResponse(200, settings, "Settings fetched"));
 });
 
 // POST /api/settings — create or update a setting

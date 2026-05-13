@@ -116,7 +116,8 @@ model SiteSettings {
   homepagePageId Int?
   postsPageId    Int?
 
-  createdAt DateTime @default(now())
+  globalCss String? @db.Text 
+  createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt
 }
 
@@ -126,7 +127,7 @@ model FooterSettings {
   value Json
 }
 
-model Media {
+model Media { 
   id           Int      @id @default(autoincrement())
   fileName     String
   originalName String

@@ -168,6 +168,7 @@ export default function PublicPostPage() {
   const [loading, setLoading] = useState(true);
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
+  const [globalCss, setGlobalCss] = useState("");
 
   const { menus, loading: menusLoading } = useMenusPreview();
 
@@ -191,6 +192,20 @@ export default function PublicPostPage() {
         );
         setFooterMenus(cols);
       });
+  }, []);
+
+  // ── Fetch global CSS ──
+  useEffect(() => {
+    const fetchGlobalCss = async () => {
+      try {
+        const res = await fetch("/api/setting/global-css");
+        const data = await res.json();
+        if (data.success) setGlobalCss(data.data?.css || "");
+      } catch (err) {
+        console.error("Failed to load global CSS:", err);
+      }
+    };
+    fetchGlobalCss();
   }, []);
 
   // ── Fetch post ──
@@ -544,6 +559,8 @@ export default function PublicPostPage() {
   .footer-col-link{color:#6b7280;text-decoration:none;font-size:.875rem;transition:color .15s}
   .footer-col-link:hover{color:#fff}
   .footer-bottom{border-top:1px solid #1f2937;padding-top:1.5rem;text-align:center;font-size:.8rem;color:#4b5563}
+  /* ── Global CSS ── */
+  ${globalCss || ""}
 </style>
 </head>
 <body>

@@ -1,7 +1,11 @@
 import { asyncHandler } from "@/src/app/lib/utils/asyncHandler";
 import { ApiError } from "@/src/app/lib/utils/ApiError";
 import { ApiResponse } from "@/src/app/lib/utils/ApiResponse";
-import { deleteSetting, getSetting, upsertSetting } from "@/src/app/lib/services/settings.service.js";
+import {
+  deleteSetting,
+  getSetting,
+  upsertSetting,
+} from "@/src/app/lib/services/footersettings.service.js";
 // import { getSetting, upsertSetting, deleteSetting } from "@/app/lib/services/settings.service.js";
 
 // GET /api/settings/[key]
