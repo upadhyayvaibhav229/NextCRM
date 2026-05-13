@@ -481,29 +481,29 @@ export default function PostsListPage() {
     .post-tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
     .post-tag{font-size:.75rem;color:#9ca3af}
     .empty{text-align:center;padding:4rem 1rem;color:#6b7280}
- .cms-footer{margin-top:auto;background:#fff;color:#6c757d;border-top:1px solid #e5e7eb}
-.cms-footer-inner{width:min(1200px,calc(100% - 2rem));margin:0 auto;padding:3rem 0 1.5rem}
-.footer-top{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) minmax(260px,2fr);gap:3rem;margin-bottom:2rem;align-items:start}
-.footer-brand{display:flex;flex-direction:column;align-items:flex-start}
-.footer-logo{max-width:140px;height:auto;margin-bottom:1rem}
-.footer-brand-name{color:#111827;text-decoration:none;font-size:1.125rem;font-weight:700;margin-bottom:0.5rem}
-.footer-brand-desc{font-size:.875rem;color:#6c757d;margin:0;line-height:1.5}
-.footer-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem;width:100%}
-.footer-col-title{color:#111827;font-size:.875rem;font-weight:600;margin:0 0 1rem;text-transform:uppercase;letter-spacing:.05em}
-.footer-col-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
-.footer-col-link{color:#6c757d;text-decoration:none;font-size:.875rem;transition:color .15s}
-.footer-col-link:hover{color:#111827}
-.footer-contact{display:flex;flex-direction:column;align-items:flex-start}
-.footer-contact-text{font-size:.875rem;color:#6c757d;margin:0 0 0.5rem;line-height:1.5}
-.footer-contact-link{color:#6c757d;text-decoration:none;font-size:.875rem;margin-bottom:1rem;transition:color .15s}
-.footer-contact-link:hover{color:#111827}
-.footer-social{display:flex;gap:1rem;margin-top:0.5rem}
-.footer-social-link{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;transition:opacity .15s}
-.footer-social-link:hover{opacity:0.8}
-.footer-social-icon{width:20px;height:20px;object-fit:contain}
-.footer-bottom{border-top:1px solid #e5e7eb;padding-top:1.5rem;text-align:center;font-size:.75rem;color:#9ca3af}
-@media (max-width: 900px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
-@media (max-width: 900px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
+    .cms-footer{margin-top:auto;background:#fff;color:#6c757d;border-top:1px solid #e5e7eb}
+    .cms-footer-inner{width:min(1200px,calc(100% - 2rem));margin:0 auto;padding:3rem 0 1.5rem}
+    .footer-top{display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) minmax(260px,2fr);gap:3rem;margin-bottom:2rem;align-items:start}
+    .footer-brand{display:flex;flex-direction:column;align-items:flex-start}
+    .footer-logo{max-width:140px;height:auto;margin-bottom:1rem}
+    .footer-brand-name{color:#111827;text-decoration:none;font-size:1.125rem;font-weight:700;margin-bottom:0.5rem}
+    .footer-brand-desc{font-size:.875rem;color:#6c757d;margin:0;line-height:1.5}
+    .footer-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem;width:100%}
+    .footer-col-title{color:#111827;font-size:.875rem;font-weight:600;margin:0 0 1rem;text-transform:uppercase;letter-spacing:.05em}
+    .footer-col-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
+    .footer-col-link{color:#6c757d;text-decoration:none;font-size:.875rem;transition:color .15s}
+    .footer-col-link:hover{color:#111827}
+    .footer-contact{display:flex;flex-direction:column;align-items:flex-start}
+    .footer-contact-text{font-size:.875rem;color:#6c757d;margin:0 0 0.5rem;line-height:1.5}
+    .footer-contact-link{color:#6c757d;text-decoration:none;font-size:.875rem;margin-bottom:1rem;transition:color .15s}
+    .footer-contact-link:hover{color:#111827}
+    .footer-social{display:flex;gap:1rem;margin-top:0.5rem}
+    .footer-social-link{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;transition:opacity .15s}
+    .footer-social-link:hover{opacity:0.8}
+    .footer-social-icon{width:20px;height:20px;object-fit:contain}
+    .footer-bottom{border-top:1px solid #e5e7eb;padding-top:1.5rem;text-align:center;font-size:.75rem;color:#9ca3af}
+    @media (max-width: 900px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
+    @media (max-width: 900px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
   /* ── Global CSS ── */
   ${globalCss || ""}
   </style>
