@@ -35,6 +35,7 @@ export interface SiteSettings {
   defaultMetaTitle: string | null;
   defaultMetaDescription: string | null;
   postsPerPage: number;
+  showAdminToolbar: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

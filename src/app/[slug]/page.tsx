@@ -1,9 +1,11 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { useMenusPreview } from "@/src/hooks/useMenusPreview";
 import { Button } from "@/src/ui/button";
+import { buildAdminToolbarHtml } from "@/src/lib/admin-toolbar";
 
 interface Page {
   id: string;
@@ -30,6 +32,7 @@ const DEFAULT_FOOTER_SETTINGS = {
 export default function PreviewPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
+  const { data: session } = useSession();
   const slug = params.slug;
 
   const [page, setPage] = useState<Page | null>(null);
@@ -299,6 +302,14 @@ export default function PreviewPage() {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const seo = (page as any).seoData || {};
+  const isAdmin = (session?.user as any)?.role === "admin";
+  const adminToolbarHtml =
+    settings?.showAdminToolbar && isAdmin
+      ? buildAdminToolbarHtml({
+          pageId: page.id,
+          siteName: settings.siteName,
+        })
+      : "";
 
   // ── Shared CSS ──
   const sharedCss = `
@@ -474,6 +485,7 @@ export default function PreviewPage() {
   </style>
 </head>
 <body>
+  ${adminToolbarHtml}
   ${sharedNavbar}
   <header class="page-header">
     <div class="page-header-inner">
@@ -535,6 +547,7 @@ export default function PreviewPage() {
   </style>
 </head>
 <body>
+  ${adminToolbarHtml}
   ${sharedNavbar}
   <main class="cms-page-wrapper">
     ${page.html}

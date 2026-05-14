@@ -64,6 +64,10 @@ export async function updateSettings(input) {
             ? Number(input.postsPageId)
             : undefined,
       globalCss: input.globalCss,
+      showAdminToolbar:
+        input.showAdminToolbar !== undefined
+          ? Boolean(input.showAdminToolbar)
+          : undefined,
     },
   });
 }

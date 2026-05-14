@@ -1,8 +1,10 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useMenusPreview } from "@/src/hooks/useMenusPreview";
+import { buildAdminToolbarHtml } from "@/src/lib/admin-toolbar";
 
 interface Comment {
   id: string;
@@ -159,6 +161,7 @@ function buildCommentFormHtml(
 export default function PublicPostPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
+  const { data: session } = useSession();
   const slug = params.slug;
 
   const [post, setPost] = useState<Post | null>(null);
@@ -422,6 +425,15 @@ export default function PublicPostPage() {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const seo = (post as any).seoData || {};
+  const isAdmin = (session?.user as any)?.role === "admin";
+  const adminToolbarHtml =
+    settings?.showAdminToolbar && isAdmin
+      ? buildAdminToolbarHtml({
+          pageId: post.id,
+          siteName: settings.siteName,
+          editUrl: `/admin/posts/${post.id}`,
+        })
+      : "";
 
   const fullHtml = `<!DOCTYPE html>
 <html>
@@ -564,6 +576,7 @@ export default function PublicPostPage() {
 </style>
 </head>
 <body>
+  ${adminToolbarHtml}
 
   <nav class="cms-navbar">
     <div class="cms-navbar-inner">

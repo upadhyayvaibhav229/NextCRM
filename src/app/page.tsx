@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { useMenusPreview } from "@/src/hooks/useMenusPreview";
+import { buildAdminToolbarHtml } from "@/src/lib/admin-toolbar";
 
 interface Post {
   id: string;
@@ -27,6 +29,7 @@ const DEFAULT_FOOTER_SETTINGS = {
 
 export default function PostsListPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const { menus, loading: menusLoading } = useMenusPreview();
@@ -224,6 +227,15 @@ export default function PostsListPage() {
       footerSettings.footerCopyright ||
       `© ${new Date().getFullYear()} ${settings.siteName}. All rights reserved.`,
   };
+  const isAdmin = (session?.user as any)?.role === "admin";
+  const buildToolbar = (pageId?: string | number | null) =>
+    settings?.showAdminToolbar && isAdmin
+      ? buildAdminToolbarHtml({
+          pageId,
+          siteName: settings.siteName,
+          editUrl: pageId ? undefined : "/admin",
+        })
+      : "";
   const renderFooterBrand = (): string => `
     <div class="footer-brand">
       ${
@@ -376,6 +388,7 @@ export default function PostsListPage() {
   </style>
 </head>
 <body>
+  ${buildToolbar(page.id)}
   <nav class="cms-navbar">
     <div class="cms-navbar-inner">
       <a href="/" class="cms-brand" onclick="handleNav(event,'/')">
@@ -509,6 +522,7 @@ export default function PostsListPage() {
   </style>
 </head>
 <body>
+  ${buildToolbar(null)}
   <nav class="cms-navbar">
     <div class="cms-navbar-inner">
    <a href="/" class="cms-brand" onclick="handleNav(event,'/')">

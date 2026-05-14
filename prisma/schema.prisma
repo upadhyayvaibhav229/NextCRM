@@ -117,6 +117,7 @@ model SiteSettings {
   postsPageId    Int?
 
   globalCss String? @db.Text 
+  showAdminToolbar Boolean @default(true)
   createdAt DateTime @default(now()) 
   updatedAt DateTime @updatedAt
 }
@@ -177,10 +178,70 @@ model Comment {
   updatedAt DateTime @updatedAt
 }
 
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  AUTHOR
+  VIEWER
+  SUBSCRIBER
+}
+
+model Permission {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String?
+
+  roles           RolePermission[]
+  userPermissions UserPermission[]
+
+  @@index([name])
+}
+
+model RolePermission {
+  id Int @id @default(autoincrement())
+
+  role UserRole
+
+  permissionId Int
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([role, permissionId])
+
+  @@index([role])
+  @@index([permissionId])
+}
+
+
+
+model UserPermission {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  permissionId Int
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  allowed Boolean @default(true)
+
+  @@unique([userId, permissionId])
+
+  @@index([userId])
+  @@index([permissionId])
+}
+
 model User {
-  id       Int       @id @default(autoincrement())
-  email    String    @unique
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
   password String
-  role     String // admin | editor
+
+  role UserRole @default(SUBSCRIBER)
+
   comments Comment[]
+
+  userPermissions UserPermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

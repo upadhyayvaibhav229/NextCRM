@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Trash2,
+  Wrench,
 } from "lucide-react";
 import { Button } from "@/src/ui/button";
 import { MediaPickerModal } from "../media-manager/MediaPicker";
@@ -140,6 +141,7 @@ interface SiteSettings {
   homepageType: "posts" | "page";
   homepagePageId: number | null;
   postsPageId: number | null;
+  showAdminToolbar: boolean;
 
   createdAt: Date;
   updatedAt: Date;
@@ -166,6 +168,7 @@ export function SettingsPage({
     defaultMetaTitle: "",
     defaultMetaDescription: "",
     postsPerPage: 10,
+    showAdminToolbar: true,
     ...initialSettings,
   });
 
@@ -194,6 +197,7 @@ export function SettingsPage({
         defaultMetaTitle: "",
         defaultMetaDescription: "",
         postsPerPage: 10,
+        showAdminToolbar: true,
         ...initialSettings,
       });
 
@@ -320,6 +324,37 @@ export function SettingsPage({
                   </span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="border border-border rounded-lg bg-card overflow-hidden">
+            <div className="px-6 py-4 border-b border-border bg-muted/20">
+              <div className="flex items-center gap-3">
+                <Wrench className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold text-foreground">
+                  Admin Preview Toolbar
+                </h2>
+              </div>
+            </div>
+            <div className="p-6">
+              <label className="flex items-center justify-between gap-4 cursor-pointer">
+                <div>
+                  <span className="block text-sm font-medium text-foreground">
+                    Show Admin Toolbar on Preview
+                  </span>
+                  <span className="mt-1 block text-sm text-muted-foreground">
+                    Displays Edit Page and Customize CSS actions on public iframe previews for admins.
+                  </span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.showAdminToolbar !== false}
+                  onChange={(e) =>
+                    updateField("showAdminToolbar", e.target.checked)
+                  }
+                  className="h-5 w-5 accent-primary"
+                />
+              </label>
             </div>
           </div>
 
