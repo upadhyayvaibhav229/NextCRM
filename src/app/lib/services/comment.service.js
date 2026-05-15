@@ -1,4 +1,5 @@
 import { prisma } from "../prisma.js";
+import { requirePermission } from "../withPermission.js";
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -109,6 +110,8 @@ export async function getAdminComments({
   page = 1,
   perPage = 20,
 }) {
+  await requirePermission("comments_moderate");
+
   const where = {};
 
   if (status && status !== "all") where.status = status.toUpperCase();
@@ -140,6 +143,8 @@ export async function getAdminComments({
 // ═══════════════════════════════════════════════════════════
 
 export async function getCommentCounts() {
+  await requirePermission("comments_moderate");
+
   const [all, pending, approved, spam, trash] = await Promise.all([
     prisma.comment.count(),
     prisma.comment.count({ where: { status: "PENDING" } }),
@@ -156,6 +161,8 @@ export async function getCommentCounts() {
 // ═══════════════════════════════════════════════════════════
 
 export async function updateCommentStatus(id, status) {
+  await requirePermission("comments_moderate");
+
   return prisma.comment.update({
     where: { id },
     data: { status: status.toUpperCase() },
@@ -168,6 +175,8 @@ export async function updateCommentStatus(id, status) {
 // ═══════════════════════════════════════════════════════════
 
 export async function adminReplyToComment({ commentId, content, adminUser }) {
+  await requirePermission("comments_moderate");
+
   const parent = await prisma.comment.findUnique({ where: { id: commentId } });
   if (!parent) throw new Error("Parent comment not found");
 
@@ -190,6 +199,8 @@ export async function adminReplyToComment({ commentId, content, adminUser }) {
 // ═══════════════════════════════════════════════════════════
 
 export async function bulkUpdateCommentStatus(ids, status) {
+  await requirePermission("comments_moderate");
+
   return prisma.comment.updateMany({
     where: { id: { in: ids } },
     data: { status: status.toUpperCase() },
@@ -197,6 +208,8 @@ export async function bulkUpdateCommentStatus(ids, status) {
 }
 
 export async function bulkDeleteComments(ids) {
+  await requirePermission("comments_delete");
+
   return prisma.comment.deleteMany({
     where: { id: { in: ids } },
   });
@@ -207,6 +220,8 @@ export async function bulkDeleteComments(ids) {
 // ═══════════════════════════════════════════════════════════
 
 export async function deleteComment(id) {
+  await requirePermission("comments_delete");
+
   // Delete replies first to avoid FK constraint
   await prisma.comment.deleteMany({ where: { parentId: id } });
   return prisma.comment.delete({ where: { id } });
@@ -217,5 +232,7 @@ export async function deleteComment(id) {
 // ═══════════════════════════════════════════════════════════
 
 export async function getCommentById(id) {
+  await requirePermission("comments_moderate");
+
   return prisma.comment.findUnique({ where: { id }, select: commentSelect });
 }

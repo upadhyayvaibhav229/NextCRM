@@ -215,23 +215,23 @@ export function MediaManager() {
         method: "DELETE",
       });
 
-      if (!response.ok) throw new Error();
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete media");
+      }
 
       toast({
         title: "Success",
         description: "Media deleted successfully",
       });
+
       setMedia((prev) => prev.filter((m) => m.id !== deleteItem.id));
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(deleteItem.id);
-        return next;
-      });
-      setTotalItems((prev) => prev - 1);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete media",
+        description:
+          error instanceof Error ? error.message : "Failed to delete media",
         variant: "destructive",
       });
     } finally {
@@ -252,24 +252,28 @@ export function MediaManager() {
         body: JSON.stringify({ ids }),
       });
 
-      if (!response.ok) throw new Error();
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete some items");
+      }
 
       toast({
         title: "Success",
         description: `${ids.length} items deleted`,
       });
+
       setMedia((prev) => prev.filter((m) => !selectedIds.has(m.id)));
       setSelectedIds(new Set());
       setTotalItems((prev) => prev - ids.length);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete some items",
+        description: error.message || "Failed to delete some items",
         variant: "destructive",
       });
     }
   };
-
   const handleUpdate = async (item: MediaItem, updates: Partial<MediaItem>) => {
     try {
       const response = await fetch(`/api/media/${item.id}`, {
@@ -301,7 +305,8 @@ export function MediaManager() {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update media",
+        description:
+          error instanceof Error ? error.message : "Failed to update media",
         variant: "destructive",
       });
       throw error;

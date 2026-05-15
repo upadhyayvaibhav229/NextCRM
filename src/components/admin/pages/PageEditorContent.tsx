@@ -261,9 +261,7 @@ function CodeEditor({
   page: Page;
   onChange: (page: Page) => void;
 }) {
-  const [activeCodeTab, setActiveCodeTab] = useState<"html" | "css" | "js">(
-    "html",
-  );
+  const [activeCodeTab, setActiveCodeTab] = useState<"html">("html");
 
   const monacoOptions = {
     minimap: { enabled: false },
@@ -288,7 +286,7 @@ function CodeEditor({
   return (
     <>
       <div className="flex border-b border-[#dcdcde] bg-[#1e1e1e]">
-        {(["html", "css", "js"] as const).map((tab) => (
+        {(["html"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveCodeTab(tab)}
@@ -323,78 +321,6 @@ function CodeEditor({
     </>
   );
 }
-
-// ─── JSX Preview Tab ──────────────────────────────────────  ← NEW
-
-// function JsxPreviewTab({ jsxCode }: { jsxCode?: string | null }) {
-//   if (!jsxCode) {
-//     console.log("JSX PROP =>", jsxCode);
-//     return (
-//       <div className="flex flex-col items-center justify-center h-64 text-muted-foreground gap-3">
-//         <span className="text-5xl">⚛️</span>
-//         <p className="text-sm font-medium">No JSX generated yet</p>
-//         <p className="text-xs text-muted-foreground text-center max-w-xs">
-//           Save or publish this page — the HTML will be automatically
-//           converted to a React TSX component and shown here.
-//         </p>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="flex flex-col gap-3 p-4">
-
-//       {/* Header */}
-//       <div className="flex items-center justify-between">
-//         <div>
-//           <h3 className="text-sm font-semibold text-foreground">
-//             React Component (TSX)
-//           </h3>
-//           <p className="text-xs text-muted-foreground mt-0.5">
-//             Auto-generated from HTML on save · {jsxCode.split("\n").length} lines
-//           </p>
-//         </div>
-//         <button
-//           onClick={() => navigator.clipboard.writeText(jsxCode)}
-//           className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg transition-colors"
-//         >
-//           Copy TSX
-//         </button>
-//       </div>
-
-//       {/* Info */}
-//       <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-xs text-blue-700">
-//         ✅ Colors, fonts, spacing and class names are preserved exactly.
-//         Only JSX syntax was changed{" "}
-//         <span className="font-mono">
-//           (class→className, style strings→objects, self-closing tags)
-//         </span>
-//       </div>
-
-//       {/* Code viewer using Monaco — read only */}
-//       <Editor
-//         height="500px"
-//         language="typescript"
-//         value={jsxCode}
-//         theme="vs-dark"
-//         options={{
-//           readOnly:            true,
-//           minimap:             { enabled: false },
-//           fontSize:            13,
-//           lineNumbers:         "on",
-//           scrollBeyondLastLine: false,
-//           automaticLayout:     true,
-//           wordWrap:            "on",
-//         }}
-//         loading={
-//           <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-sm text-[#858585]">
-//             Loading...
-//           </div>
-//         }
-//       />
-//     </div>
-//   );
-// }
 
 // ─── Main Export ──────────────────────────────────────────
 

@@ -1,6 +1,7 @@
 // lib/services/posts.service.js
 
 import { prisma } from "../prisma.js";
+import { requirePermission } from "../withPermission.js";
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -29,6 +30,8 @@ async function ensureUniqueSlug(model, slug, excludeId = null) {
 // ═══════════════════════════════════════════════════════════
 
 export async function getAllPosts() {
+  await requirePermission("posts_view");
+
   return prisma.post.findMany({
     orderBy: { createdAt: "desc" },
     select: {
@@ -47,6 +50,8 @@ export async function getAllPosts() {
 }
 
 export async function getPostById(id) {
+  await requirePermission("posts_view");
+
   return prisma.post.findUnique({
     where: { id },
     include: {
@@ -84,6 +89,8 @@ export async function getPublishedPosts() {
 }
 
 export async function createPost(input) {
+  await requirePermission("posts_create");
+
   const slug = input.slug?.trim()
     ? generateSlug(input.slug)
     : generateSlug(input.title);
@@ -105,6 +112,8 @@ export async function createPost(input) {
 }
 
 export async function updatePost(id, input) {
+  await requirePermission("posts_edit_any");
+
   const { id: _, createdAt, updatedAt, categoryIds, tagIds, ...rest } = input;
 
   if (rest.title && !rest.slug) rest.slug = generateSlug(rest.title);
@@ -137,6 +146,8 @@ export async function updatePost(id, input) {
 }
 
 export async function deletePost(id) {
+  await requirePermission("posts_delete_any");
+
   return prisma.post.delete({
     where: {
       id,
@@ -145,6 +156,8 @@ export async function deletePost(id) {
 }
 
 export async function BulkDeletePosts(ids) {
+  await requirePermission("posts_delete_any");
+
   return prisma.post.deleteMany({
     where: {
       id: {
@@ -155,6 +168,8 @@ export async function BulkDeletePosts(ids) {
 }
 
 export async function publishPost(id) {
+  await requirePermission("posts_publish");
+
   return prisma.post.update({
     where: {
       id,
@@ -167,6 +182,8 @@ export async function publishPost(id) {
 }
 
 export async function unpublishPost(id) {
+  await requirePermission("posts_publish");
+
   return prisma.post.update({
     where: { id },
     data: { status: "DRAFT", publishedAt: null },

@@ -1,6 +1,7 @@
 // lib/services/posts.service.js
 
 import { prisma } from "../prisma.js";
+import { requirePermission } from "../withPermission.js";
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -29,6 +30,8 @@ async function ensureUniqueSlug(model, slug, excludeId = null) {
 // ═══════════════════════════════════════════════════════════
 
 export async function getAllCategories() {
+  await requirePermission("taxonomy_manage");
+
   return prisma.category.findMany({ 
   orderBy: { name: "asc" },
   include: {
@@ -49,6 +52,8 @@ export async function getAllCategories() {
 }
 
 export async function getCategoryById(id) {
+  await requirePermission("taxonomy_manage");
+
   return prisma.category.findUnique({
     where: { id },
     include: {
@@ -68,6 +73,8 @@ export async function getCategoryById(id) {
 }
 
 export async function createCategory(input) {
+  await requirePermission("taxonomy_manage");
+
   const slug = input.slug?.trim()
     ? generateSlug(input.slug)
     : generateSlug(input.name);
@@ -83,6 +90,8 @@ export async function createCategory(input) {
 }
 
 export async function updateCategory(id, input) {
+  await requirePermission("taxonomy_manage");
+
   const { id: _, _count, posts, createdAt, updatedAt, ...rest } = input;
 
   if (rest.name && !rest.slug) rest.slug = generateSlug(rest.name);
@@ -106,12 +115,16 @@ export async function updateCategory(id, input) {
 }
 
 export async function deleteCategory(id) {
+  await requirePermission("taxonomy_manage");
+
   return prisma.category.delete({ where: { id } });
 }
 
 
 
 export async function BulkDeleteCategories(id) {
+  await requirePermission("taxonomy_manage");
+
   return prisma.category.deleteMany({
     where: {
       id: {

@@ -343,7 +343,8 @@ export function SettingsPage({
                     Show Admin Toolbar on Preview
                   </span>
                   <span className="mt-1 block text-sm text-muted-foreground">
-                    Displays Edit Page and Customize CSS actions on public iframe previews for admins.
+                    Displays Edit Page and Customize CSS actions on public
+                    iframe previews for admins.
                   </span>
                 </div>
                 <input
@@ -474,6 +475,33 @@ export function SettingsPage({
               {saveStatus === "error" && "Error!"}
               {saveStatus === "idle" &&
                 (hasChanges ? "Save Changes" : "No Changes")}
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              onClick={async () => {
+                try {
+                  const res = await fetch("/api/permissions/seed", {
+                    method: "POST",
+                  });
+
+                  const data = await res.json();
+
+                  console.log(data);
+
+                  if (!res.ok) {
+                    alert(data.message || "Something went wrong");
+                    return;
+                  }
+
+                  alert("Permissions seeded successfully");
+                } catch (error) {
+                  console.error(error);
+                  alert("Failed to seed permissions");
+                }
+              }}
+            >
+              Seed Permissions
             </button>
           </div>
         </form>

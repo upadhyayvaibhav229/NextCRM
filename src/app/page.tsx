@@ -227,7 +227,7 @@ export default function PostsListPage() {
       footerSettings.footerCopyright ||
       `© ${new Date().getFullYear()} ${settings.siteName}. All rights reserved.`,
   };
-  const isAdmin = (session?.user as any)?.role === "admin";
+  const isAdmin = (session?.user as any)?.role === "ADMIN";
   const buildToolbar = (pageId?: string | number | null) =>
     settings?.showAdminToolbar && isAdmin
       ? buildAdminToolbarHtml({

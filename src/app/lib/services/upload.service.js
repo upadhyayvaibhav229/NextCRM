@@ -1,7 +1,10 @@
 import { writeFile } from "fs/promises";
 import path from "path";
+import { requirePermission } from "../withPermission";
 
 export async function uploadFile(file) {
+  await requirePermission("media_upload");
+
   if (!file) {
     throw new Error("No file provided");
   }

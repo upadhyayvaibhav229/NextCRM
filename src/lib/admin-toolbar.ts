@@ -18,6 +18,7 @@ export function buildAdminToolbarHtml({
     <strong class="cms-admin-toolbar-site"></strong>
     <button type="button" class="cms-admin-toolbar-btn" data-toolbar-action="edit">Edit Page</button>
     <button type="button" class="cms-admin-toolbar-btn" data-toolbar-action="css">Customize CSS</button>
+    <button type="button" class="cms-admin-toolbar-btn" data-toolbar-action="css">Dashboard</button>
   </div>
   <button type="button" class="cms-admin-toolbar-hide" data-toolbar-action="hide" aria-label="Hide admin toolbar">Hide</button>
 </div>

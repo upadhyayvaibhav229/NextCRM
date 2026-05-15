@@ -19,6 +19,7 @@ import {
   Layout,
   Globe2,
   Globe,
+  PanelBottom,
 } from "lucide-react";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";
@@ -127,9 +128,21 @@ const navItems: NavItem[] = [
       {
         id: "footer-settings",
         label: "Footer Settings",
-        icon: Layout,
+        icon: PanelBottom ,
         description: "Styling & themes",
       },
+      {
+        id: "user",
+        label: "Users",
+        icon: User,
+        description: "Manage access control",
+      },
+      {
+        id: "permissions",
+        label: "Permissions",
+        icon: User,
+        description: "Manage access control",
+      }
     ],
   },
 ];

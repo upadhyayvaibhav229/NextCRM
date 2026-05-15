@@ -1,4 +1,5 @@
 import { prisma } from "../prisma.js";
+import { requirePermission } from "../withPermission.js";
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -18,6 +19,8 @@ function generateSlug(title) {
 
 // GET all pages
 export async function getAllPages() {
+  await requirePermission("pages_view");
+
   return prisma.page.findMany({
     orderBy: { createdAt: "desc" },
     select: {
@@ -33,6 +36,8 @@ export async function getAllPages() {
 
 // GET single page by ID
 export async function getPageById(id) {
+  await requirePermission("pages_view");
+
   return prisma.page.findUnique({
     where: { id: Number(id) },
   });
@@ -64,6 +69,8 @@ export async function getPublishedPages() {
 
 // CREATE page
 export async function createPage(input) {
+  await requirePermission("pages_create");
+
   const slug = input.slug?.trim()
     ? generateSlug(input.slug)
     : generateSlug(input.title);
@@ -87,6 +94,8 @@ export async function createPage(input) {
 
 // UPDATE page
 export async function updatePage(id, input) {
+  await requirePermission("pages_edit_any");
+
   // ✅ remove unwanted fields
   const {
     id: _,
@@ -118,12 +127,16 @@ export async function updatePage(id, input) {
 
 // DELETE page
 export async function deletePage(id) {
+  await requirePermission("pages_delete");
+
   return prisma.page.delete({
     where: { id: Number(id) },
   });
 }
 
 export async function BulkDeletePages(ids) {
+  await requirePermission("pages_delete");
+
   return prisma.page.deleteMany({
     where: {
       id: {
@@ -135,6 +148,8 @@ export async function BulkDeletePages(ids) {
 
 // PUBLISH page
 export async function publishPage(id) {
+  await requirePermission("pages_edit_any");
+
   return prisma.page.update({
     where: { id: Number(id) },
     data: { status: "published" },
@@ -143,6 +158,8 @@ export async function publishPage(id) {
 
 // UNPUBLISH page (back to draft)
 export async function unpublishPage(id) {
+  await requirePermission("pages_edit_any");
+
   return prisma.page.update({
     where: { id: Number(id) },
     data: { status: "draft" },

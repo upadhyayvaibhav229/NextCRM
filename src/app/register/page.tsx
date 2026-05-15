@@ -9,7 +9,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("ADMIN");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -109,8 +109,8 @@ export default function RegisterPage() {
               onChange={(event) => setRole(event.target.value)}
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring focus:ring-1 focus:ring-ring"
             >
-              <option value="admin">Admin</option>
-              <option value="editor">Editor</option>
+              <option value="ADMIN">Admin</option>
+              <option value="EDITOR">Editor</option>
             </select>
           </div>
 

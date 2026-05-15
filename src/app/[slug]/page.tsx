@@ -302,7 +302,7 @@ export default function PreviewPage() {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const seo = (page as any).seoData || {};
-  const isAdmin = (session?.user as any)?.role === "admin";
+  const isAdmin = (session?.user as any)?.role === "ADMIN";
   const adminToolbarHtml =
     settings?.showAdminToolbar && isAdmin
       ? buildAdminToolbarHtml({

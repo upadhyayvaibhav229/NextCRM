@@ -1,4 +1,5 @@
 import { prisma } from "@/src/app/lib/prisma";
+import { normalizeRole } from "@/src/app/lib/permissions";
 import { ApiError } from "@/src/app/lib/utils/ApiError";
 import { ApiResponse } from "@/src/app/lib/utils/ApiResponse";
 import { asyncHandler } from "@/src/app/lib/utils/asyncHandler";
@@ -12,6 +13,8 @@ export const POST = asyncHandler(async (req) => {
   if (!email?.trim()) throw new ApiError(400, "Email is required");
   if (!password?.trim()) throw new ApiError(400, "Password is required");
   if (!role?.trim()) throw new ApiError(400, "Role is required");
+  const normalizedRole = normalizeRole(role);
+  if (!normalizedRole) throw new ApiError(400, "Invalid role");
 
   const exisitngUser = await prisma.user.findUnique({
     where: {
@@ -30,7 +33,7 @@ export const POST = asyncHandler(async (req) => {
     data: {
       email,
       password: hashedPassword,
-      role,
+      role: normalizedRole,
     },
   });
 

@@ -1,9 +1,12 @@
 import { prisma } from "../prisma.js";
+import { requirePermission } from "../withPermission.js";
 
 // ──────────────────────────────────────────────
 // DASHBOARD DATA
 // ──────────────────────────────────────────────
 export async function getDashboardData() {
+  await requirePermission("posts_view");
+
   const [
     pagesCount,
     postsCount,

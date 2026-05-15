@@ -1,4 +1,5 @@
 import { prisma } from "../prisma.js";
+import { requirePermission } from "../withPermission.js";
 
 // GET setting by key
 export async function getSetting(key) {
@@ -21,6 +22,8 @@ export async function getAllSettings() {
 
 // UPSERT
 export async function upsertSetting(key, value) {
+  await requirePermission("settings_manage");
+
   return prisma.footerSettings.upsert({
     where: { key },
     update: { value },
@@ -30,6 +33,8 @@ export async function upsertSetting(key, value) {
 
 // DELETE
 export async function deleteSetting(key) {
+  await requirePermission("settings_manage");
+
   return prisma.footerSettings.delete({
     where: { key },
   });

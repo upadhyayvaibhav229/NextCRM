@@ -1,4 +1,5 @@
 import { prisma } from "../prisma.js";
+import { requirePermission } from "../withPermission.js";
 
 const SETTINGS_ID = 1;
 
@@ -19,6 +20,8 @@ export async function getSettings() {
 
 // UPDATE SETTINGS
 export async function updateSettings(input) {
+  await requirePermission("settings_manage");
+
   await getSettings();
 
   // Validation

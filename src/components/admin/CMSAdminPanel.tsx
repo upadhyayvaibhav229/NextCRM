@@ -18,6 +18,9 @@ import AdminSettings from "./setting/Page";
 import { FooterSettingsSection } from "./FooterSettingSection";
 import { MediaManager } from "../media-manager/MediaManager";
 import CommentsSection from "./comments/CommentsSection";
+import { UserForm } from "./user/UserForm";
+import { UserRoleBadge } from "./user/UserRoleBadge";
+import { PermissionsSection } from "./user/Permission";
 
 export function CMSAdminPanel() {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -65,6 +68,8 @@ export function CMSAdminPanel() {
         {activeSection === "footer-settings" && <FooterSettingsSection />}
         {activeSection === "settings" && <AdminSettings />}
         {activeSection === "global-css" && <GlobalCssSection />}
+        {activeSection === "user" && <UserForm onSuccess={() => {}} onCancel={() => {}} actorRole="ADMIN" />}
+        {activeSection === "permissions" && <PermissionsSection />}
       </main>
     </div>
   );

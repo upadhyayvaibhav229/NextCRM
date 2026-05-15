@@ -3,6 +3,7 @@ import sharp from "sharp";
 import fs from "fs/promises";
 import path from "path";
 import { ApiError } from "../utils/ApiError";
+import { requirePermission } from "../withPermission";
 
 // Allowed MIME Types
 const ALLOWED_TYPES = [
@@ -31,6 +32,8 @@ const ALLOWED_TYPES = [
 // CREATE MEDIA
 // ─────────────────────────────────────────────
 export async function createMedia(input) {
+  await requirePermission("media_upload");
+
   const files = Array.isArray(input) ? input : [input];
 
   const uploadedMedia = [];
@@ -100,6 +103,8 @@ export async function createMedia(input) {
 // GET ALL MEDIA
 // ─────────────────────────────────────────────
 export async function getAllMedia({ page = 1, limit = 20, search = "" }) {
+  await requirePermission("media_upload");
+
   page = Number(page);
   limit = Number(limit);
 
@@ -156,6 +161,8 @@ export async function getAllMedia({ page = 1, limit = 20, search = "" }) {
 // UPDATE MEDIA META
 // ─────────────────────────────────────────────
 export async function updateMedia(id, input) {
+  await requirePermission("media_upload");
+
   return prisma.media.update({
     where: {
       id: Number(id),
@@ -174,6 +181,8 @@ export async function updateMedia(id, input) {
 // ─────────────────────────────────────────────
 
 export async function deleteMedia(id) {
+  await requirePermission("media_delete");
+
   const media = await prisma.media.findUnique({
     where: {
       id: Number(id),
@@ -199,6 +208,8 @@ export async function deleteMedia(id) {
 
 // bulk delete
 export async function bulkDeleteMedia(ids) {
+  await requirePermission("media_delete");
+
   return prisma.media.deleteMany({
     where: {
       id: {

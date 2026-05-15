@@ -1,6 +1,7 @@
 // lib/services/posts.service.js
 
 import { prisma } from "../prisma.js";
+import { requirePermission } from "../withPermission.js";
 
 // ─── Helpers ──────────────────────────────────────────────
 
@@ -32,6 +33,8 @@ async function ensureUniqueSlug(model, slug, excludeId = null) {
 // ═══════════════════════════════════════════════════════════
 
 export async function getAllTags() {
+  await requirePermission("taxonomy_manage");
+
   return prisma.tag.findMany({
     orderBy: { name: "asc" },
     include: { _count: { select: { posts: true } } },
@@ -39,6 +42,8 @@ export async function getAllTags() {
 }
 
 export async function getTagById(id) {
+  await requirePermission("taxonomy_manage");
+
   return prisma.tag.findUnique({
     where: { id },
     include: { posts: { select: { id: true, title: true, slug: true } } },
@@ -46,6 +51,8 @@ export async function getTagById(id) {
 }
 
 export async function createTag(input) {
+  await requirePermission("taxonomy_manage");
+
   const slug = input.slug?.trim()
     ? generateSlug(input.slug)
     : generateSlug(input.name);
@@ -56,6 +63,8 @@ export async function createTag(input) {
 }
 
 export async function updateTag(id, input) {
+  await requirePermission("taxonomy_manage");
+
   const { id: _, ...rest } = input;
   if (rest.name && !rest.slug) rest.slug = generateSlug(rest.name);
   if (rest.slug) {
@@ -66,11 +75,15 @@ export async function updateTag(id, input) {
 }
 
 export async function deleteTag(id) {
+  await requirePermission("taxonomy_manage");
+
   return prisma.tag.delete({ where: { id } });
 }
 
 
 export async function BulkDeleteTags(id) {
+  await requirePermission("taxonomy_manage");
+
   return prisma.tag.deleteMany({
     where: {
       id: {

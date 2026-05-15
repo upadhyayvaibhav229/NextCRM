@@ -19,7 +19,7 @@ model Page {
   html      String
   css       String?
   js        String?
-  jsxCode   String?  @db.Text        // ← ADD
+  jsxCode   String?  @db.Text // ← ADD
   pageType  String   @default("html") // ← ADD
   status    String
   seoData   Json?
@@ -40,7 +40,9 @@ model Post {
   content       String  @db.Text
   featuredImage String?
 
-  status ContentStatus @default(DRAFT)
+  status   ContentStatus @default(DRAFT)
+  authorId Int?
+  author   User?         @relation("PostAuthor", fields: [authorId], references: [id], onDelete: SetNull) // ← ADD
 
   seoData Json?
 
@@ -116,10 +118,10 @@ model SiteSettings {
   homepagePageId Int?
   postsPageId    Int?
 
-  globalCss String? @db.Text 
-  showAdminToolbar Boolean @default(true)
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt
+  globalCss        String?  @db.Text
+  showAdminToolbar Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model FooterSettings {
@@ -128,7 +130,7 @@ model FooterSettings {
   value Json
 }
 
-model Media { 
+model Media {
   id           Int      @id @default(autoincrement())
   fileName     String
   originalName String
@@ -188,8 +190,8 @@ enum UserRole {
 }
 
 model Permission {
-  id          Int    @id @default(autoincrement())
-  name        String @unique
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
   description String?
 
   roles           RolePermission[]
@@ -204,38 +206,36 @@ model RolePermission {
   role UserRole
 
   permissionId Int
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@unique([role, permissionId])
-
   @@index([role])
   @@index([permissionId])
 }
-
-
 
 model UserPermission {
   id Int @id @default(autoincrement())
 
   userId Int
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   permissionId Int
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   allowed Boolean @default(true)
 
   @@unique([userId, permissionId])
-
   @@index([userId])
   @@index([permissionId])
 }
 
 model User {
-  id       Int      @id @default(autoincrement())
-  email    String   @unique
+  id       Int    @id @default(autoincrement())
+  email    String @unique
   password String
 
+  name String?
+  // slug     String   @unique
   role UserRole @default(SUBSCRIBER)
 
   comments Comment[]
@@ -244,4 +244,5 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  posts     Post[]   @relation("PostAuthor") // ← ADD THIS
 }

@@ -1,4 +1,5 @@
 import { prisma } from "../prisma.js";
+import { requirePermission } from "../withPermission.js";
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -67,6 +68,8 @@ export async function getAllMenus() {
 
 // GET single menu by ID
 export async function getMenuById(id) {
+  await requirePermission("menus_manage");
+
   // fix 8: proper error handling
   const menu = await prisma.menu.findUnique({
     where: { id: Number(id) },
@@ -106,6 +109,8 @@ export async function getMenuByLocation(location) {
 
 // CREATE menu
 export async function createMenu(input) {
+  await requirePermission("menus_manage");
+
   const { name, location, items = [] } = input;
 
   // fix 1: validate location
@@ -146,6 +151,8 @@ export async function createMenu(input) {
 
 // UPDATE menu — fix 7: also updates items (delete + recreate)
 export async function updateMenu(id, input) {
+  await requirePermission("menus_manage");
+
   const { name, location, items } = input;
 
   // fix 8: check menu exists first
@@ -204,6 +211,8 @@ export async function updateMenu(id, input) {
 
 // DELETE menu — fix 5: cascade handles items automatically
 export async function deleteMenu(id) {
+  await requirePermission("menus_manage");
+
   // fix 8: check exists first
   await getMenuById(id);
 
@@ -216,6 +225,8 @@ export async function deleteMenu(id) {
 
 // ADD item to menu
 export async function addMenuItem(menuId, input) {
+  await requirePermission("menus_manage");
+
   // fix 8: check menu exists
   await getMenuById(menuId);
 
@@ -243,6 +254,8 @@ export async function addMenuItem(menuId, input) {
 
 // UPDATE single item
 export async function updateMenuItem(itemId, input) {
+  await requirePermission("menus_manage");
+
   // fix 8: check item exists
   const existing = await prisma.menuItem.findUnique({
     where: { id: Number(itemId) },
@@ -269,6 +282,8 @@ export async function updateMenuItem(itemId, input) {
 
 // DELETE single item
 export async function deleteMenuItem(itemId) {
+  await requirePermission("menus_manage");
+
   // fix 8: check exists
   const existing = await prisma.menuItem.findUnique({
     where: { id: Number(itemId) },
@@ -285,6 +300,8 @@ export async function deleteMenuItem(itemId) {
 
 // REORDER items — accepts array of { id, order }
 export async function reorderMenuItems(menuId, items) {
+  await requirePermission("menus_manage");
+
   if (!Array.isArray(items) || items.length === 0) {
     throw new Error("Items must be a non-empty array");
   }
