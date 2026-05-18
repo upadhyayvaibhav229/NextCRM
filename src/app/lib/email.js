@@ -4,8 +4,8 @@ import nodemailer from "nodemailer";
 
 function createTransporter() {
   return nodemailer.createTransport({
-    host:   process.env.SMTP_HOST,
-    port:   Number(process.env.SMTP_PORT) || 587,
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
     secure: process.env.SMTP_SECURE === "true",
     auth: {
       user: process.env.SMTP_USER,
@@ -24,11 +24,13 @@ export function replaceVariables(template, data) {
   // Replace {{*}} with full HTML table of all fields
   if (result.includes("{{*}}")) {
     const tableRows = Object.entries(data)
-      .map(([key, value]) => `
+      .map(
+        ([key, value]) => `
         <tr>
           <td style="padding:8px 12px;border:1px solid #e5e7eb;font-weight:600;background:#f9fafb;">${key}</td>
           <td style="padding:8px 12px;border:1px solid #e5e7eb;">${value ?? ""}</td>
-        </tr>`)
+        </tr>`,
+      )
       .join("");
 
     const table = `
@@ -41,10 +43,7 @@ export function replaceVariables(template, data) {
 
   // Replace individual {{fieldName}} variables
   Object.entries(data).forEach(([key, value]) => {
-    result = result.replace(
-      new RegExp(`\\{\\{${key}\\}\\}`, "g"),
-      value ?? "",
-    );
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value ?? "");
   });
 
   return result;
@@ -57,10 +56,10 @@ export async function sendEmail({ to, cc, bcc, replyTo, from, subject, html }) {
 
   await transporter.sendMail({
     to,
-    cc:      cc      || undefined,
-    bcc:     bcc     || undefined,
+    cc: cc || undefined,
+    bcc: bcc || undefined,
     replyTo: replyTo || undefined,
-    from:    from    || process.env.SMTP_FROM || process.env.SMTP_USER,
+    from: from || process.env.SMTP_FROM || process.env.SMTP_USER,
     subject,
     html,
   });
@@ -76,21 +75,19 @@ export async function sendFormEmails(emailConfigs, submissionData) {
   for (const emailConfig of emailConfigs) {
     try {
       const subject = replaceVariables(emailConfig.subject, submissionData);
-      const html    = replaceVariables(emailConfig.message, submissionData);
+      const html = replaceVariables(emailConfig.message, submissionData);
 
       // Convert plain text to basic HTML if needed
-      const htmlBody = html.includes("<")
-        ? html
-        : html.replace(/\n/g, "<br/>");
+      const htmlBody = html.includes("<") ? html : html.replace(/\n/g, "<br/>");
 
       await sendEmail({
-        to:      replaceVariables(emailConfig.emailTo,   submissionData),
-        cc:      replaceVariables(emailConfig.cc,        submissionData),
-        bcc:     replaceVariables(emailConfig.bcc,       submissionData),
-        replyTo: replaceVariables(emailConfig.replyTo,   submissionData),
-        from:    replaceVariables(emailConfig.emailFrom, submissionData),
+        to: replaceVariables(emailConfig.emailTo, submissionData),
+        cc: replaceVariables(emailConfig.cc, submissionData),
+        bcc: replaceVariables(emailConfig.bcc, submissionData),
+        replyTo: replaceVariables(emailConfig.replyTo, submissionData),
+        from: replaceVariables(emailConfig.emailFrom, submissionData),
         subject,
-        html:    htmlBody,
+        html: htmlBody,
       });
     } catch (err) {
       console.error(`[email] Failed to send email config:`, err);

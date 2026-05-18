@@ -307,7 +307,7 @@ export default function PostsListPage() {
                   ? `<span class="post-date">${new Date(post.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</span>`
                   : ""
               }
-              <a href="/posts/${post.slug}" onclick="handleNav(event,'/posts/${post.slug}')" class="read-more">Read more â†’</a>
+              <a href="/posts/${post.slug}" onclick="handleNav(event,'/posts/${post.slug}')" class="read-more">Read more</a>
             </div>
             ${
               post.tags?.length
