@@ -6,6 +6,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useMenusPreview } from "@/src/hooks/useMenusPreview";
 import { Button } from "@/src/ui/button";
 import { buildAdminToolbarHtml } from "@/src/lib/admin-toolbar";
+import {
+  FORM_CSS,
+  FORM_SUBMIT_SCRIPT,
+  injectForms,
+} from "@/src/lib/form-rendere";
 
 interface Page {
   id: string;
@@ -46,6 +51,8 @@ export default function PreviewPage() {
   const [footerMenus, setFooterMenus] = useState<any[]>([]);
   const [isPostsPage, setIsPostsPage] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
+  const [processedHtml, setProcessedHtml] = useState(page?.html ?? "");
+  const [hasForms, setHasForms] = useState(false);
 
   const { menus, loading: menusLoading } = useMenusPreview();
 
@@ -125,6 +132,10 @@ export default function PreviewPage() {
           setPage(data.data);
           setNotFound(false);
 
+          // ── Process form embeds ──
+          const { html, hasForms } = await injectForms(data.data.html);
+          setProcessedHtml(html);
+          setHasForms(hasForms);
           if (
             siteSettings?.postsPageId &&
             data.data.id === siteSettings.postsPageId
@@ -544,13 +555,14 @@ export default function PreviewPage() {
     .cms-page-wrapper { flex: 1; min-height: calc(100vh - 140px); }
     /* ── Page CSS ── */
     ${page.css || ""}
+    ${hasForms ? FORM_CSS : ""}
   </style>
 </head>
 <body>
   ${adminToolbarHtml}
   ${sharedNavbar}
   <main class="cms-page-wrapper">
-    ${page.html}
+${processedHtml}
   </main>
   ${sharedFooter}
   <script>
@@ -559,6 +571,7 @@ export default function PreviewPage() {
       window.parent.postMessage({ type: "NAVIGATE", url: url }, "*");
     }
     ${page.js || ""}
+    ${hasForms ? FORM_SUBMIT_SCRIPT : ""}
   </script>
 </body>
 </html>`;

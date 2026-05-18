@@ -1,7 +1,8 @@
 // import { sendFormEmails } from "../email.js";
 import { sendFormEmails } from "../email.js";
-import { prisma }          from "../prisma.js";
-import { ApiError }        from "../utils/ApiError.js";
+import { prisma } from "../prisma.js";
+// import { prisma } from "../prisma.js";
+import { ApiError } from "../utils/ApiError.js";
 
 // ── Generate slug ─────────────────────────────────────────
 
@@ -20,10 +21,10 @@ export async function getAllForms() {
   return prisma.form.findMany({
     orderBy: { createdAt: "desc" },
     select: {
-      id:        true,
-      title:     true,
-      slug:      true,
-      status:    true,
+      id: true,
+      title: true,
+      slug: true,
+      status: true,
       createdAt: true,
       updatedAt: true,
       _count: { select: { submissions: true } },
@@ -47,15 +48,15 @@ export async function getFormBySlug(slug) {
   const form = await prisma.form.findUnique({
     where: { slug },
     select: {
-      id:                  true,
-      title:               true,
-      slug:                true,
-      fields:              true,
-      submitButtonLabel:   true,
-      confirmationType:    true,
+      id: true,
+      title: true,
+      slug: true,
+      fields: true,
+      submitButtonLabel: true,
+      confirmationType: true,
       confirmationMessage: true,
-      redirectUrl:         true,
-      status:              true,
+      redirectUrl: true,
+      status: true,
     },
   });
   if (!form) throw new ApiError(404, "Form not found");
@@ -70,7 +71,7 @@ export async function createForm(input) {
     ? generateSlug(input.slug)
     : generateSlug(input.title || "untitled-form");
 
-  let slug    = baseSlug;
+  let slug = baseSlug;
   let counter = 1;
 
   while (await prisma.form.findUnique({ where: { slug } })) {
@@ -79,15 +80,16 @@ export async function createForm(input) {
 
   return prisma.form.create({
     data: {
-      title:               input.title || "Untitled Form",
+      title: input.title || "Untitled Form",
       slug,
-      fields:              input.fields              ?? [],
-      submitButtonLabel:   input.submitButtonLabel   ?? "Submit",
-      confirmationType:    input.confirmationType    ?? "message",
-      confirmationMessage: input.confirmationMessage ?? "Thank you for your submission.",
-      redirectUrl:         input.redirectUrl         ?? null,
-      emails:              input.emails              ?? [],
-      status:              input.status              ?? "active",
+      fields: input.fields ?? [],
+      submitButtonLabel: input.submitButtonLabel ?? "Submit",
+      confirmationType: input.confirmationType ?? "message",
+      confirmationMessage:
+        input.confirmationMessage ?? "Thank you for your submission.",
+      redirectUrl: input.redirectUrl ?? null,
+      emails: input.emails ?? [],
+      status: input.status ?? "active",
     },
   });
 }
@@ -122,7 +124,10 @@ export async function deleteForm(id) {
 
 // ── Get submissions for a form ────────────────────────────
 
-export async function getFormSubmissions(formId, { page = 1, perPage = 20 } = {}) {
+export async function getFormSubmissions(
+  formId,
+  { page = 1, perPage = 20 } = {},
+) {
   const where = { formId: Number(formId) };
 
   const [total, submissions] = await Promise.all([
@@ -130,8 +135,8 @@ export async function getFormSubmissions(formId, { page = 1, perPage = 20 } = {}
     prisma.formSubmission.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      skip:    (page - 1) * perPage,
-      take:    perPage,
+      skip: (page - 1) * perPage,
+      take: perPage,
     }),
   ]);
 
@@ -149,7 +154,7 @@ export async function getFormSubmissions(formId, { page = 1, perPage = 20 } = {}
 export async function submitForm(slug, data, ipAddress) {
   // Get full form including emails
   const form = await prisma.form.findUnique({ where: { slug } });
-  if (!form)                    throw new ApiError(404, "Form not found");
+  if (!form) throw new ApiError(404, "Form not found");
   if (form.status !== "active") throw new ApiError(403, "Form is not active");
 
   // Validate required fields
@@ -169,7 +174,7 @@ export async function submitForm(slug, data, ipAddress) {
   // Save submission
   const submission = await prisma.formSubmission.create({
     data: {
-      formId:    form.id,
+      formId: form.id,
       data,
       ipAddress: ipAddress || null,
     },
@@ -183,9 +188,9 @@ export async function submitForm(slug, data, ipAddress) {
 
   return {
     submission,
-    confirmationType:    form.confirmationType,
+    confirmationType: form.confirmationType,
     confirmationMessage: form.confirmationMessage,
-    redirectUrl:         form.redirectUrl,
+    redirectUrl: form.redirectUrl,
   };
 }
 

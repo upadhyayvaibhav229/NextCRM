@@ -1,10 +1,11 @@
-import { getFormById } from "../../../../lib/services/form.service";
+import {  getFormBySlug } from "../../../../lib/services/form.service";
 import { ApiError } from "../../../../lib/utils/ApiError";
 import { ApiResponse } from "../../../../lib/utils/ApiResponse";
 import { asyncHandler } from "../../../../lib/utils/asyncHandler";
 
-export const GET = asyncHandler(async (req, { params }) => {
-    const form = await getFormById(params.slug);
+export const GET = asyncHandler(async (req, context) => {
+    const {slug} = await context.params;
+    const form = await getFormBySlug(slug);
     if (!form) {
         throw new ApiError(404, "Form not found");
     }

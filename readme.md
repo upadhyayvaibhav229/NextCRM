@@ -1,5 +1,8 @@
 Here are all API endpoints for both Pages and Menus:
 
+for forms use these snippets :
+<div data-form="test-1"></div>
+[form slug="test-1"]
 ---
 
 ## Editors Used

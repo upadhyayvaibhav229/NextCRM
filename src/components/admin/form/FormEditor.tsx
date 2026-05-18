@@ -1,51 +1,56 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  GripVertical,
+} from "lucide-react";
 import { Button } from "@/src/ui/button";
 import { FormSubmissions } from "./FormSubmissions";
 // import { FormSubmissions } from "./FormSubmissions";
 
-
 // ── Field types ───────────────────────────────────────────
 const FIELD_TYPES = [
-  { value: "text",     label: "Text" },
-  { value: "email",    label: "Email" },
-  { value: "tel",      label: "Phone" },
-  { value: "number",   label: "Number" },
+  { value: "text", label: "Text" },
+  { value: "email", label: "Email" },
+  { value: "tel", label: "Phone" },
+  { value: "number", label: "Number" },
   { value: "textarea", label: "Textarea" },
-  { value: "select",   label: "Select" },
+  { value: "select", label: "Select" },
   { value: "checkbox", label: "Checkbox" },
-  { value: "message",  label: "Message (static text)" },
+  { value: "message", label: "Message (static text)" },
 ];
 
 interface FormField {
-  id:          string;
-  type:        string;
-  name:        string;
-  label:       string;
-  required:    boolean;
+  id: string;
+  type: string;
+  name: string;
+  label: string;
+  required: boolean;
   placeholder?: string;
-  options?:    string[];
-  message?:    string;
+  options?: string[];
+  message?: string;
 }
 
 interface EmailConfig {
-  id:         string;
-  emailTo:    string;
-  cc:         string;
-  bcc:        string;
-  replyTo:    string;
-  emailFrom:  string;
-  subject:    string;
-  message:    string;
-  collapsed:  boolean;
+  id: string;
+  emailTo: string;
+  cc: string;
+  bcc: string;
+  replyTo: string;
+  emailFrom: string;
+  subject: string;
+  message: string;
+  collapsed: boolean;
 }
 
 interface FormEditorProps {
-  form:     any;
-  isNew:    boolean;
-  onSave:   (form: any) => void;
+  form: any;
+  isNew: boolean;
+  onSave: (form: any) => void;
   onCancel: () => void;
 }
 
@@ -60,7 +65,7 @@ function FieldBlock({
   onChange,
   onDelete,
 }: {
-  field:    FormField;
+  field: FormField;
   onChange: (f: FormField) => void;
   onDelete: () => void;
 }) {
@@ -106,7 +111,9 @@ function FieldBlock({
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 {FIELD_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -138,7 +145,9 @@ function FieldBlock({
                 <input
                   type="text"
                   value={field.label}
-                  onChange={(e) => onChange({ ...field, label: e.target.value })}
+                  onChange={(e) =>
+                    onChange({ ...field, label: e.target.value })
+                  }
                   placeholder="e.g. First Name"
                   className="w-full border border-border rounded px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
@@ -169,7 +178,9 @@ function FieldBlock({
               <textarea
                 rows={3}
                 value={field.message || ""}
-                onChange={(e) => onChange({ ...field, message: e.target.value })}
+                onChange={(e) =>
+                  onChange({ ...field, message: e.target.value })
+                }
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -233,8 +244,8 @@ function EmailBlock({
   onChange,
   onDelete,
 }: {
-  email:    EmailConfig;
-  index:    number;
+  email: EmailConfig;
+  index: number;
   onChange: (e: EmailConfig) => void;
   onDelete: () => void;
 }) {
@@ -247,10 +258,20 @@ function EmailBlock({
         <span className="text-sm font-medium text-foreground flex-1">
           Email {String(index + 1).padStart(2, "0")}
         </span>
-        <button onClick={toggle} className="text-muted-foreground hover:text-foreground">
-          {email.collapsed ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
+        <button
+          onClick={toggle}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          {email.collapsed ? (
+            <ChevronDown size={15} />
+          ) : (
+            <ChevronUp size={15} />
+          )}
         </button>
-        <button onClick={onDelete} className="text-muted-foreground hover:text-destructive">
+        <button
+          onClick={onDelete}
+          className="text-muted-foreground hover:text-destructive"
+        >
           <Trash2 size={14} />
         </button>
       </div>
@@ -274,7 +295,9 @@ function EmailBlock({
           {/* CC + BCC */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">CC</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                CC
+              </label>
               <input
                 type="text"
                 value={email.cc}
@@ -283,7 +306,9 @@ function EmailBlock({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">BCC</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                BCC
+              </label>
               <input
                 type="text"
                 value={email.bcc}
@@ -302,7 +327,9 @@ function EmailBlock({
               <input
                 type="text"
                 value={email.replyTo}
-                onChange={(e) => onChange({ ...email, replyTo: e.target.value })}
+                onChange={(e) =>
+                  onChange({ ...email, replyTo: e.target.value })
+                }
                 placeholder='"Reply To" <reply-to@email.com>'
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -314,7 +341,9 @@ function EmailBlock({
               <input
                 type="text"
                 value={email.emailFrom}
-                onChange={(e) => onChange({ ...email, emailFrom: e.target.value })}
+                onChange={(e) =>
+                  onChange({ ...email, emailFrom: e.target.value })
+                }
                 placeholder='"Email From" <email-from@email.com>'
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -344,12 +373,17 @@ function EmailBlock({
               rows={6}
               value={email.message}
               onChange={(e) => onChange({ ...email, message: e.target.value })}
-              placeholder={"Use {{fieldName}} for field values.\nUse {{*}} to output all fields as a table."}
+              placeholder={
+                "Use {{fieldName}} for field values.\nUse {{*}} to output all fields as a table."
+              }
               className="w-full border border-border rounded px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary font-mono"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Use <code className="bg-muted px-1 rounded">{"{{fieldName}}"}</code> to insert field values.
-              Use <code className="bg-muted px-1 rounded">{"{{*}}"}</code> to output all fields as an HTML table.
+              Use{" "}
+              <code className="bg-muted px-1 rounded">{"{{fieldName}}"}</code>{" "}
+              to insert field values. Use{" "}
+              <code className="bg-muted px-1 rounded">{"{{*}}"}</code> to output
+              all fields as an HTML table.
             </p>
           </div>
         </div>
@@ -361,30 +395,31 @@ function EmailBlock({
 // ── Main FormEditor ───────────────────────────────────────
 
 export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
-  const [data, setData]       = useState({
-    title:               form.title               || "",
-    slug:                form.slug                || "",
-    fields:              (form.fields             || []) as FormField[],
-    submitButtonLabel:   form.submitButtonLabel   || "Submit",
-    confirmationType:    form.confirmationType    || "message",
-    confirmationMessage: form.confirmationMessage || "Thank you for your submission.",
-    redirectUrl:         form.redirectUrl         || "",
-    emails:              (form.emails             || []) as EmailConfig[],
-    status:              form.status              || "active",
+  const [data, setData] = useState({
+    title: form.title || "",
+    slug: form.slug || "",
+    fields: (form.fields || []) as FormField[],
+    submitButtonLabel: form.submitButtonLabel || "Submit",
+    confirmationType: form.confirmationType || "message",
+    confirmationMessage:
+      form.confirmationMessage || "Thank you for your submission.",
+    redirectUrl: form.redirectUrl || "",
+    emails: (form.emails || []) as EmailConfig[],
+    status: form.status || "active",
   });
-  const [saving, setSaving]   = useState(false);
-  const [error, setError]     = useState("");
-  const [view, setView]       = useState<"editor" | "submissions">("editor");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [view, setView] = useState<"editor" | "submissions">("editor");
 
   // ── Field operations ──
 
   function addField() {
     const newField: FormField = {
-      id:          generateId(),
-      type:        "text",
-      name:        "",
-      label:       "",
-      required:    false,
+      id: generateId(),
+      type: "text",
+      name: "",
+      label: "",
+      required: false,
       placeholder: "",
     };
     setData((d) => ({ ...d, fields: [...d.fields, newField] }));
@@ -408,14 +443,14 @@ export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
 
   function addEmail() {
     const newEmail: EmailConfig = {
-      id:        generateId(),
-      emailTo:   "",
-      cc:        "",
-      bcc:       "",
-      replyTo:   "",
+      id: generateId(),
+      emailTo: "",
+      cc: "",
+      bcc: "",
+      replyTo: "",
       emailFrom: "",
-      subject:   "You've received a new message.",
-      message:   "{{*}}",
+      subject: "You've received a new message.",
+      message: "{{*}}",
       collapsed: false,
     };
     setData((d) => ({ ...d, emails: [...d.emails, newEmail] }));
@@ -447,13 +482,13 @@ export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
     setError("");
 
     try {
-      const url    = isNew ? "/api/form" : `/api/form/${form.id}`;
+      const url = isNew ? "/api/form" : `/api/form/${form.id}`;
       const method = isNew ? "POST" : "PATCH";
 
-      const res  = await fetch(url, {
+      const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify(data),
+        body: JSON.stringify(data),
       });
 
       const result = await res.json();
@@ -471,9 +506,17 @@ export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
     }
   }
 
+  // generate slug
+  function generateSlug(text: string) {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
-
       {/* Header — like Payload */}
       <div className="sticky top-0 z-10 bg-background border-b border-border px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -524,7 +567,6 @@ export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
         <FormSubmissions formId={form.id} />
       ) : (
         <div className="flex-1 max-w-4xl mx-auto w-full px-8 py-8 space-y-8">
-
           {/* Title */}
           <div>
             <h1 className="text-2xl font-bold text-foreground mb-6">
@@ -549,7 +591,13 @@ export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
             <input
               type="text"
               value={data.title}
-              onChange={(e) => setData({ ...data, title: e.target.value })}
+              onChange={(e) => {
+                const title = e.target.value;
+
+                const slug = generateSlug(title);
+
+                setData({ ...data, title, slug });
+              }}
               className="w-full border border-border rounded-lg px-4 py-3 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
@@ -571,7 +619,9 @@ export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
           {/* Fields */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-foreground">Fields</h2>
+              <h2 className="text-base font-semibold text-foreground">
+                Fields
+              </h2>
             </div>
 
             <div className="space-y-3">
@@ -681,7 +731,9 @@ export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
           {/* Emails section */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-base font-semibold text-foreground">Emails</h2>
+              <h2 className="text-base font-semibold text-foreground">
+                Emails
+              </h2>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() =>
@@ -709,8 +761,8 @@ export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
             </div>
             <p className="text-xs text-muted-foreground mb-4">
               Send custom emails when the form submits. Use{" "}
-              <code className="bg-muted px-1 rounded">{"{{fieldName}}"}</code> to
-              reference field values.{" "}
+              <code className="bg-muted px-1 rounded">{"{{fieldName}}"}</code>{" "}
+              to reference field values.{" "}
               <code className="bg-muted px-1 rounded">{"{{*}}"}</code> outputs
               all data as an HTML table.
             </p>
@@ -750,7 +802,6 @@ export function FormEditor({ form, isNew, onSave, onCancel }: FormEditorProps) {
               <option value="inactive">Inactive</option>
             </select>
           </div>
-
         </div>
       )}
     </div>
