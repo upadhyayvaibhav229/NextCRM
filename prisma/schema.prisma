@@ -229,9 +229,34 @@ model UserPermission {
   @@index([permissionId])
 }
 
+model Form {
+  id                  Int              @id @default(autoincrement())
+  title               String
+  slug                String           @unique
+  fields              Json             
+  submitButtonLabel   String?          @default("Submit")
+  confirmationType    String           @default("message")
+  confirmationMessage String?
+  redirectUrl         String?
+  emails              Json?            
+  status              String           @default("active")
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  submissions         FormSubmission[]
+}
+
+model FormSubmission {
+  id        Int      @id @default(autoincrement())
+  formId    Int
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  data      Json
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
+
 model User {
   id       Int    @id @default(autoincrement())
-  email    String @unique
+  email    String @unique0
   password String
 
   name String?

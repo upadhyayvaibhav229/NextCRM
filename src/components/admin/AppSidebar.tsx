@@ -20,6 +20,7 @@ import {
   Globe2,
   Globe,
   PanelBottom,
+  Form,
 } from "lucide-react";
 import { ThemeToggle } from "@/src/components/theme-toggle";
 import { signOut, useSession } from "next-auth/react";
@@ -99,6 +100,12 @@ const navItems: NavItem[] = [
     label: "Pages",
     icon: Globe,
     description: "Manage content",
+  },
+  {
+    id: "forms",
+    label: "Forms",
+    icon: Form,
+    description: "Manage forms",
   },
   {
     id: "menus",

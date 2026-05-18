@@ -21,6 +21,7 @@ import CommentsSection from "./comments/CommentsSection";
 import { UserForm } from "./user/UserForm";
 import { UserRoleBadge } from "./user/UserRoleBadge";
 import { PermissionsSection } from "./user/Permission";
+import { FormsSection } from "./form/FormsSection";
 
 export function CMSAdminPanel() {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -70,6 +71,7 @@ export function CMSAdminPanel() {
         {activeSection === "global-css" && <GlobalCssSection />}
         {activeSection === "user" && <UserForm onSuccess={() => {}} onCancel={() => {}} actorRole="ADMIN" />}
         {activeSection === "permissions" && <PermissionsSection />}
+        {activeSection === "forms" && <FormsSection />}
       </main>
     </div>
   );
